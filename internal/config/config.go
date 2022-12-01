@@ -7,14 +7,14 @@ import (
 type ServerCfg struct {
 	NodeId      string   `json:"nodeId" yaml:"nodeId"`
 	ServiceName string   `json:"serviceName" yaml:"serviceName"`
-	Host        string   `json:"host" yaml:"host" json:"host,omitempty"`
-	Port        int      `json:"port" yaml:"port" json:"port,omitempty"`
-	Rpc         int      `json:"rpc" yaml:"rpc" json:"rpc,omitempty"`
+	Host        string   `json:"host" yaml:"host"`
+	Port        int      `json:"port" yaml:"port"`
+	RpcPort     int      `json:"rpcPort" yaml:"rpcPort"`
 	ENV         string   `json:"-" yaml:"-"`
-	MysqlCfg    MysqlCfg `json:"mysql" yaml:"mysqlCfg" json:"mysqlCfg"`
-	RedisCfg    RedisCfg `json:"redis" yaml:"redisCfg" json:"redisCfg"`
-	NatsCfg     NatsCfg  `json:"nats" yaml:"natsCfg" json:"natsCfg"`
-	EtcdCfg     EtcdCfg  `json:"etcd" yaml:"etcdCfg" json:"etcdCfg"`
+	MysqlCfg    MysqlCfg `json:"mysql" yaml:"mysqlCfg"`
+	RedisCfg    RedisCfg `json:"redis" yaml:"redisCfg"`
+	NatsCfg     NatsCfg  `json:"nats" yaml:"natsCfg"`
+	EtcdCfg     EtcdCfg  `json:"etcd" yaml:"etcdCfg"`
 }
 
 type MysqlCfg struct {
@@ -76,11 +76,10 @@ func (c *NatsCfg) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 type EtcdCfg struct {
-	Host     []string `json:"hosts"  yaml:"hosts"`
+	Hosts    []string `json:"hosts"  yaml:"hosts"`
 	UserName string   `json:"userName" yaml:"userName"`
 	Password string   `json:"password" yaml:"password"`
 	password string
-	Port     int `json:"port" yaml:"port"`
 }
 
 func (c *EtcdCfg) MarshalJSON() ([]byte, error) {

@@ -3,7 +3,9 @@ package server
 import (
 	"b0b-common/internal/log"
 	"context"
+	"encoding/json"
 	"errors"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type Type string
@@ -13,23 +15,49 @@ const (
 	RPC  Type = "rpc"
 )
 
+var MainServers *MainServer
+
 type Interface interface {
 	Start(ctx context.Context) error
+	Ctx() context.Context
+	GetInfo() Server
 }
+
 type Server struct {
-	Type Type
-	Port int
-	Host string
+	Ctx  context.Context `json:"-"`
+	Type Type            `json:"type"`
+	Port int             `json:"port"`
+	Host string          `json:"host"`
+}
+
+type EtcdReg struct {
+	Type Type   `json:"type"`
+	Port int    `json:"port"`
+	Host string `json:"host"`
+}
+
+func (s *Server) ToJson() (string, error) {
+	marshal, err := json.Marshal(s)
+	if err != nil {
+		return "", nil
+	}
+	return string(marshal), nil
 }
 
 type MainServer struct {
-	Servers []Interface
+	Servers         []Interface
+	DiscoverServers *Servers
 }
 
 func NewMainServer() *MainServer {
-	return &MainServer{
+	if MainServers != nil {
+		return MainServers
+	}
+	m := &MainServer{
 		Servers: make([]Interface, 0),
 	}
+	MainServers = m
+	return m
 }
 
 func (m *MainServer) AddServer(server Interface) {
@@ -44,9 +72,22 @@ func (m *MainServer) Start(ctx context.Context) error {
 		go func(server Interface) {
 			err := server.Start(ctx)
 			if err != nil {
-				log.Errorf("server %+v", server)
+				log.Errorf("server %+v  start fail err=%v", server, err)
 			}
 		}(server)
 	}
 	return nil
+}
+
+func (m *MainServer) Discover(ctx context.Context, etcd *clientv3.Client) {
+	if m.DiscoverServers == nil {
+		m.DiscoverServers = NewServices(ctx, etcd)
+	}
+	for _, server := range m.Servers {
+		info := server.GetInfo()
+		serverCtx := server.Ctx()
+		discover := NewDiscover(serverCtx, etcd, info)
+		go discover.Start()
+	}
+	m.DiscoverServers.Start()
 }

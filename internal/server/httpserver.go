@@ -42,6 +42,7 @@ func IdleTimeout(duration time.Duration) Option {
 func NewHttpServer(host string, port int, router *mux.Router, options ...Option) *HttpServer {
 	return &HttpServer{
 		Server: Server{
+			Ctx:  context.Background(),
 			Type: Http,
 			Port: port,
 			Host: host,
@@ -78,7 +79,19 @@ func (s *HttpServer) Start(ctx context.Context) error {
 	<-c
 	timeCtx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
-	srv.Shutdown(timeCtx)
+	err := srv.Shutdown(timeCtx)
+	if err != nil {
+		log.Error("http Shutdown fail err=", err)
+		return err
+	}
 	log.Info("httpServer stop")
 	return nil
+}
+
+func (s *HttpServer) Ctx() context.Context {
+	return s.Server.Ctx
+}
+
+func (s *HttpServer) GetInfo() Server {
+	return s.Server
 }
