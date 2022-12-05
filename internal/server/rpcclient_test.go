@@ -1,9 +1,10 @@
 package server
 
 import (
-	"b0b-common/internal/server/proto"
+	h "b0b-common/internal/server/proto"
 	"context"
 	"fmt"
+
 	"google.golang.org/grpc"
 	"testing"
 )
@@ -15,8 +16,8 @@ func TestHelloServer(t *testing.T) {
 		panic(err)
 	}
 	defer conn.Close()
-	c := proto.NewGreeterClient(conn)
-	r, err := c.SayHello(context.Background(), &proto.HelloRequest{Name: "bobby"})
+	c := h.NewGreeterClient(conn)
+	r, err := c.SayHello(context.Background(), &h.HelloRequest{Name: "bobby"})
 	if err != nil {
 		panic(err)
 	}

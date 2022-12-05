@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"net"
+	"os"
+	"os/signal"
 )
 
 type GrpcServer struct {
@@ -37,12 +39,17 @@ func (s *GrpcServer) Start(ctx context.Context) error {
 		log.Error("grpc Listen ", address, " fail err=", err)
 		return err
 	}
-	log.Infof("grpcServer start %s", address)
-	err = s.GrpcServer.Serve(listen)
-	if err != nil {
-		log.Error("grpc Serve ", address, " fail err=", err)
-		return err
-	}
+	log.Infof("GrpcServer %s start", address)
+	go func() {
+		err = s.GrpcServer.Serve(listen)
+		if err != nil {
+			log.Error("grpc Serve ", address, " fail err=", err)
+			return
+		}
+	}()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	<-c
 	log.Info("rpcServer stop ", address)
 	return nil
 }

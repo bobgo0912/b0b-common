@@ -4,7 +4,6 @@ import (
 	"b0b-common/internal/log"
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,7 +12,7 @@ import (
 
 type HttpServer struct {
 	Server
-	Router  *mux.Router
+	Router  *Router
 	Options []Option
 }
 
@@ -39,7 +38,7 @@ func IdleTimeout(duration time.Duration) Option {
 	}
 }
 
-func NewHttpServer(host string, port int, router *mux.Router, options ...Option) *HttpServer {
+func NewHttpServer(host string, port int, router *Router, options ...Option) *HttpServer {
 	return &HttpServer{
 		Server: Server{
 			Ctx:  context.Background(),
@@ -55,7 +54,7 @@ func NewHttpServer(host string, port int, router *mux.Router, options ...Option)
 func (s *HttpServer) Start(ctx context.Context) error {
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", s.Host, s.Port),
-		Handler: s.Router,
+		Handler: s.Router.R,
 	}
 
 	for _, option := range s.Options {
@@ -75,7 +74,7 @@ func (s *HttpServer) Start(ctx context.Context) error {
 	}()
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, os.Kill)
 	<-c
 	timeCtx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
