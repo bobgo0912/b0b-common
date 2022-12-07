@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/bobgo0912/b0b-common/internal/log"
+	"github.com/bobgo0912/b0b-common/internal/util"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -24,19 +25,22 @@ type Interface interface {
 }
 
 type Server struct {
-	Ctx  context.Context `json:"-"`
-	Type Type            `json:"type"`
-	Port int             `json:"port"`
-	Host string          `json:"host"`
+	Ctx      context.Context `json:"-"`
+	Type     Type            `json:"type"`
+	Port     int             `json:"port"`
+	Host     string          `json:"host"`
+	HostName string          `json:"hostName"`
 }
 
 type EtcdReg struct {
-	Type Type   `json:"type"`
-	Port int    `json:"port"`
-	Host string `json:"host"`
+	Type     Type   `json:"type"`
+	Port     int    `json:"port"`
+	Host     string `json:"host"`
+	HostName string `json:"hostName"`
 }
 
 func (s *Server) ToJson() (string, error) {
+	s.Host = util.GetIp()
 	marshal, err := json.Marshal(s)
 	if err != nil {
 		return "", nil

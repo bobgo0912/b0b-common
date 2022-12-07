@@ -3,11 +3,13 @@ package server
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/bobgo0912/b0b-common/internal/config"
 	"github.com/bobgo0912/b0b-common/internal/constant"
 	"github.com/bobgo0912/b0b-common/internal/etcd"
 	"github.com/bobgo0912/b0b-common/internal/log"
-	bp "github.com/bobgo0912/b0b-common/internal/server/proto"
+	hello "github.com/bobgo0912/b0b-common/internal/server/proto"
+	"github.com/bobgo0912/b0b-common/internal/util"
 	"google.golang.org/protobuf/proto"
 	"io"
 	"net/http"
@@ -18,12 +20,12 @@ import (
 )
 
 type HelleServer struct {
-	bp.UnimplementedGreeterServer
+	hello.UnimplementedGreeterServer
 }
 
-func (s *HelleServer) SayHello(ctx context.Context, request *bp.HelloRequest) (*bp.HelloReply,
+func (s *HelleServer) SayHello(ctx context.Context, request *hello.HelloRequest) (*hello.HelloReply,
 	error) {
-	return &bp.HelloReply{
+	return &hello.HelloReply{
 		Message: "hello " + request.Name,
 	}, nil
 }
@@ -40,22 +42,29 @@ func TestServer(t *testing.T) {
 	r := NewRouter()
 	r.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
 		log.Info("test")
+		ip := RemoteIp(request)
+		log.Info(ip)
 		writer.Write([]byte("ttt"))
 	}).Methods("GET")
 	//r.Use(GrpcMid)
-	r.HandleProtoFunc("/proto", func(req *proto.Message, w http.ResponseWriter) {
+	r.HandleProtoFunc("/proto", func(req proto.Message, w http.ResponseWriter) {
 		log.Info(req)
+		request := req.(*hello.HelloRequest)
+		fmt.Println(request)
+		panic("xx")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("xxxxxxx"))
-	}, &bp.HelloRequest{}).Methods("POST")
-	r.HandleProtoFunc1("/proto", func(req *proto.Message, w http.ResponseWriter) {
+	}, &hello.HelloRequest{}).Methods("POST")
+	r.HandleProtoFunc1("/proto1", func(req any, w http.ResponseWriter) {
 		log.Info(req)
+		request := req.(*hello.HelloRequest)
+		fmt.Println(request)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("xxxxxxx"))
-	}, &bp.HelloRequest{}).Methods("POST")
+	}, &hello.HelloRequest{}).Methods("POST")
 	httpServer := NewHttpServer(config.Cfg.Host, config.Cfg.Port, r)
 	grpcServer := NewGrpcServer(config.Cfg.Host, config.Cfg.RpcPort)
-	grpcServer.RegService(&bp.Greeter_ServiceDesc, &HelleServer{})
+	grpcServer.RegService(&hello.Greeter_ServiceDesc, &HelleServer{})
 	server.AddServer(httpServer)
 	server.AddServer(grpcServer)
 	err := server.Start(ctx)
@@ -79,8 +88,8 @@ func TestServer(t *testing.T) {
 	//	panic(err)
 	//}
 	//defer conn.Close()
-	//c := bp.NewGreeterClient(conn)
-	//hello, err := c.SayHello(context.Background(), &bp.HelloRequest{Name: "bobby"})
+	//c := hello.NewGreeterClient(conn)
+	//hello, err := c.SayHello(context.Background(), &hello.HelloRequest{Name: "bobby"})
 	//if err != nil {
 	//	panic(err)
 	//}
@@ -91,7 +100,7 @@ func TestServer(t *testing.T) {
 
 func TestHttpGrpc(t *testing.T) {
 
-	request := bp.HelloRequest{Name: "xxx"}
+	request := hello.HelloRequest{Name: "xxx"}
 	marshal, err := proto.Marshal(&request)
 	if err != nil {
 		t.Fatal(err)
@@ -101,7 +110,7 @@ func TestHttpGrpc(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	newRequest.Header.Add(constant.ProtoHeader, "HelloRequest")
+	newRequest.Header.Add(constant.ProtoHeader, "hello.HelloRequest")
 	do, err := http.DefaultClient.Do(newRequest)
 	if err != nil {
 		t.Fatal(err)
@@ -115,11 +124,16 @@ func TestHttpGrpc(t *testing.T) {
 		t.Error(string(all))
 		return
 	}
-	var resp bp.HelloReply
+	var resp hello.HelloReply
 	err = proto.Unmarshal(all, &resp)
 	if err != nil {
 		t.Error(string(all))
 		t.Fatal(err)
 	}
 	t.Log(resp)
+}
+
+func TestA(t *testing.T) {
+	util.GetIp()
+
 }

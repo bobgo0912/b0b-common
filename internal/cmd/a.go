@@ -1,12 +1,12 @@
 package main
 
 import (
-	"b0b-common/internal/config"
-	"b0b-common/internal/etcd"
-	"b0b-common/internal/log"
-	"b0b-common/internal/server"
-	bp "b0b-common/internal/server/proto"
 	"context"
+	"github.com/bobgo0912/b0b-common/internal/config"
+	"github.com/bobgo0912/b0b-common/internal/etcd"
+	"github.com/bobgo0912/b0b-common/internal/log"
+	"github.com/bobgo0912/b0b-common/internal/server"
+	bp "github.com/bobgo0912/b0b-common/internal/server/proto"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"os"
@@ -41,11 +41,6 @@ func main() {
 	}).Methods("GET")
 	//r.Use(GrpcMid)
 	r.HandleProtoFunc("/proto", func(req *proto.Message, w http.ResponseWriter) {
-		log.Info(req)
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("xxxxxxx"))
-	}, &bp.HelloRequest{}).Methods("POST")
-	r.HandleProtoFunc1("/proto", func(req *proto.Message, w http.ResponseWriter) {
 		log.Info(req)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("xxxxxxx"))

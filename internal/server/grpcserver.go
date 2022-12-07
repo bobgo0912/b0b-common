@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/bobgo0912/b0b-common/internal/config"
 	"github.com/bobgo0912/b0b-common/internal/log"
 	"google.golang.org/grpc"
 	"net"
@@ -17,10 +18,11 @@ func NewGrpcServer(host string, port int, options ...grpc.ServerOption) *GrpcSer
 	server := grpc.NewServer(options...)
 	return &GrpcServer{
 		Server: Server{
-			Ctx:  context.Background(),
-			Type: RPC,
-			Host: host,
-			Port: port,
+			Ctx:      context.Background(),
+			Type:     RPC,
+			Host:     host,
+			Port:     port,
+			HostName: config.Cfg.HostName,
 		},
 		GrpcServer: server,
 	}

@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
@@ -29,16 +28,17 @@ func NewOtelGrpc(ctx context.Context, options ...otlptracegrpc.Option) (*OtelCli
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
 	}
+	resource := resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String(config.Cfg.ServiceName),
+		semconv.ServiceVersionKey.String(config.Cfg.Version),
+		attribute.String("env", string(config.Cfg.ENV)),
+		attribute.String("nodeID", config.Cfg.NodeId),
+	)
 	tracerProvider := tracesdk.NewTracerProvider(
 		tracesdk.WithBatcher(exporter),
 		tracesdk.WithSampler(GetSampler()),
-		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(config.Cfg.ServiceName),
-			semconv.ServiceVersionKey.String(config.Cfg.Version),
-			attribute.String("env", string(config.Cfg.ENV)),
-			attribute.String("nodeID", config.Cfg.NodeId),
-		)),
+		tracesdk.WithResource(resource),
 	)
 	otel.SetTracerProvider(tracerProvider)
 	tracer := otel.GetTracerProvider().Tracer(

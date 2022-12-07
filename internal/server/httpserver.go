@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/bobgo0912/b0b-common/internal/config"
 	"github.com/bobgo0912/b0b-common/internal/log"
 	"net/http"
 	"time"
@@ -39,10 +40,11 @@ func IdleTimeout(duration time.Duration) Option {
 func NewHttpServer(host string, port int, router *Router, options ...Option) *HttpServer {
 	return &HttpServer{
 		Server: Server{
-			Ctx:  context.Background(),
-			Type: Http,
-			Port: port,
-			Host: host,
+			Ctx:      context.Background(),
+			Type:     Http,
+			Port:     port,
+			Host:     host,
+			HostName: config.Cfg.HostName,
 		},
 		Router:  router,
 		Options: options,
