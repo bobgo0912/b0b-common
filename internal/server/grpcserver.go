@@ -1,13 +1,11 @@
 package server
 
 import (
-	"b0b-common/internal/log"
 	"context"
 	"fmt"
+	"github.com/bobgo0912/b0b-common/internal/log"
 	"google.golang.org/grpc"
 	"net"
-	"os"
-	"os/signal"
 )
 
 type GrpcServer struct {
@@ -47,9 +45,10 @@ func (s *GrpcServer) Start(ctx context.Context) error {
 			return
 		}
 	}()
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
-	<-c
+	select {
+	case <-ctx.Done():
+		break
+	}
 	log.Info("rpcServer stop ", address)
 	return nil
 }

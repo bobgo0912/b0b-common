@@ -1,8 +1,8 @@
 package config
 
 import (
-	"b0b-common/internal/log"
 	"encoding/json"
+	"github.com/bobgo0912/b0b-common/internal/log"
 )
 
 type JsonCfgHandle struct {

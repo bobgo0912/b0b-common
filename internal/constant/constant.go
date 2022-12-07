@@ -10,3 +10,11 @@ const (
 
 	ProtoHeader = "Proto"
 )
+
+type ENV string
+
+const (
+	Dev  ENV = "dev"
+	Test ENV = "test"
+	Prod ENV = "prod"
+)

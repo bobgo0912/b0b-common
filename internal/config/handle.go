@@ -1,10 +1,10 @@
 package config
 
 import (
-	"b0b-common/internal/constant"
-	"b0b-common/internal/log"
 	"context"
 	"fmt"
+	"github.com/bobgo0912/b0b-common/internal/constant"
+	"github.com/bobgo0912/b0b-common/internal/log"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"io"
 	"os"
@@ -64,7 +64,7 @@ func (c *Config) InitConfig() {
 		log.Panic("open cfgFile ReadAll fail err=", err)
 	}
 	c.Handle.Read(all)
-	Cfg.ENV = env
+	Cfg.ENV = constant.ENV(env)
 	if env == "" {
 		Cfg.ENV = "dev"
 	}

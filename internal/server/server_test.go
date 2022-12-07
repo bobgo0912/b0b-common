@@ -1,16 +1,18 @@
 package server
 
 import (
-	"b0b-common/internal/config"
-	"b0b-common/internal/constant"
-	"b0b-common/internal/etcd"
-	"b0b-common/internal/log"
-	bp "b0b-common/internal/server/proto"
 	"bytes"
 	"context"
+	"github.com/bobgo0912/b0b-common/internal/config"
+	"github.com/bobgo0912/b0b-common/internal/constant"
+	"github.com/bobgo0912/b0b-common/internal/etcd"
+	"github.com/bobgo0912/b0b-common/internal/log"
+	bp "github.com/bobgo0912/b0b-common/internal/server/proto"
 	"google.golang.org/protobuf/proto"
 	"io"
 	"net/http"
+	"os"
+	"os/signal"
 	"testing"
 	"time"
 )
@@ -27,7 +29,7 @@ func (s *HelleServer) SayHello(ctx context.Context, request *bp.HelloRequest) (*
 }
 
 func TestServer(t *testing.T) {
-	ctx := context.Background()
+	ctx, ca := context.WithCancel(context.Background())
 	log.InitLog()
 	newConfig := config.NewConfig(config.Json)
 	newConfig.Category = "../config"
@@ -43,13 +45,11 @@ func TestServer(t *testing.T) {
 	//r.Use(GrpcMid)
 	r.HandleProtoFunc("/proto", func(req *proto.Message, w http.ResponseWriter) {
 		log.Info(req)
-
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("xxxxxxx"))
 	}, &bp.HelloRequest{}).Methods("POST")
 	r.HandleProtoFunc1("/proto", func(req *proto.Message, w http.ResponseWriter) {
 		log.Info(req)
-
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("xxxxxxx"))
 	}, &bp.HelloRequest{}).Methods("POST")
@@ -68,8 +68,12 @@ func TestServer(t *testing.T) {
 	address := GetRpcNodeAddress("testServers")
 	if address == "" {
 		t.Log(" bad address")
-		select {}
 	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	<-c
+	ca()
 	//conn, err := grpc.Dial(address, grpc.WithInsecure())
 	//if err != nil {
 	//	panic(err)

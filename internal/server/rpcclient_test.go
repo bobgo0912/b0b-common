@@ -1,9 +1,9 @@
 package server
 
 import (
-	h "b0b-common/internal/server/proto"
 	"context"
 	"fmt"
+	h "github.com/bobgo0912/b0b-common/internal/server/proto"
 
 	"google.golang.org/grpc"
 	"testing"

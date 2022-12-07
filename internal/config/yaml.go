@@ -1,7 +1,7 @@
 package config
 
 import (
-	"b0b-common/internal/log"
+	"github.com/bobgo0912/b0b-common/internal/log"
 	"gopkg.in/yaml.v3"
 )
 

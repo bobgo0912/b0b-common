@@ -1,8 +1,8 @@
 package etcd
 
 import (
-	"b0b-common/internal/config"
 	"fmt"
+	"github.com/bobgo0912/b0b-common/internal/config"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"time"
 )

@@ -1,12 +1,10 @@
 package server
 
 import (
-	"b0b-common/internal/log"
 	"context"
 	"fmt"
+	"github.com/bobgo0912/b0b-common/internal/log"
 	"net/http"
-	"os"
-	"os/signal"
 	"time"
 )
 
@@ -73,9 +71,11 @@ func (s *HttpServer) Start(ctx context.Context) error {
 		}
 	}()
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
-	<-c
+	select {
+	case <-ctx.Done():
+		break
+	}
+
 	timeCtx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 	err := srv.Shutdown(timeCtx)
