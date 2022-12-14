@@ -154,7 +154,7 @@ func GetRpcNode(serviceName string) *EtcdReg {
 	if MainServers == nil {
 		return nil
 	}
-	key := util.GetStrings(string(RPC), serviceName)
+	key := util.GetStrings(RPC, serviceName)
 	for ke, reg := range MainServers.DiscoverServers.Services {
 		if strings.Contains(ke, key) {
 			return reg

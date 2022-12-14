@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-type HttpServer struct {
+type MuxServer struct {
 	Server
-	Router  *Router
+	Router  *MuxRouter
 	Options []Option
 }
 
@@ -37,8 +37,8 @@ func IdleTimeout(duration time.Duration) Option {
 	}
 }
 
-func NewHttpServer(host string, port int, router *Router, options ...Option) *HttpServer {
-	return &HttpServer{
+func NewMuxServer(host string, port int, router *MuxRouter, options ...Option) *MuxServer {
+	return &MuxServer{
 		Server: Server{
 			Ctx:      context.Background(),
 			Type:     Http,
@@ -51,7 +51,7 @@ func NewHttpServer(host string, port int, router *Router, options ...Option) *Ht
 	}
 }
 
-func (s *HttpServer) Start(ctx context.Context) error {
+func (s *MuxServer) Start(ctx context.Context) error {
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", s.Host, s.Port),
 		Handler: s.Router.R,
@@ -66,10 +66,10 @@ func (s *HttpServer) Start(ctx context.Context) error {
 			}
 		}
 	}
-	log.Infof("httpServer %s:%d start", s.Host, s.Port)
+	log.Infof("muxServer %s:%d start", s.Host, s.Port)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Error("http ListenAndServe fail err=", err)
+			log.Panicf("muxServer start fail err=", err)
 		}
 	}()
 
@@ -85,14 +85,14 @@ func (s *HttpServer) Start(ctx context.Context) error {
 		log.Error("http Shutdown fail err=", err)
 		return err
 	}
-	log.Info("httpServer stop")
+	log.Info("muxServer stop")
 	return nil
 }
 
-func (s *HttpServer) Ctx() context.Context {
+func (s *MuxServer) Ctx() context.Context {
 	return s.Server.Ctx
 }
 
-func (s *HttpServer) GetInfo() Server {
+func (s *MuxServer) GetInfo() Server {
 	return s.Server
 }

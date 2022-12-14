@@ -14,15 +14,15 @@ import (
 
 const ProtoMessageContextName = "protoMessage"
 
-type Router struct {
+type MuxRouter struct {
 	R *mux.Router
 }
 
-func NewRouter() *Router {
-	return &Router{R: mux.NewRouter()}
+func NewRouter() *MuxRouter {
+	return &MuxRouter{R: mux.NewRouter()}
 }
 
-func (r *Router) HandleFunc(path string, f func(http.ResponseWriter, *http.Request)) *mux.Route {
+func (r *MuxRouter) HandleFunc(path string, f func(http.ResponseWriter, *http.Request)) *mux.Route {
 	return r.R.HandleFunc(path, f)
 }
 
@@ -68,7 +68,7 @@ func RemoteIp(req *http.Request) string {
 
 	return remoteAddr
 }
-func (r *Router) HandleProtoFunc(path string, f func(req proto.Message, w http.ResponseWriter), req proto.Message) *mux.Route {
+func (r *MuxRouter) HandleProtoFunc(path string, f func(req proto.Message, w http.ResponseWriter), req proto.Message) *mux.Route {
 	return r.R.HandleFunc(path, F(req, f))
 }
 func F1(req any, f func(req any, w http.ResponseWriter)) func(http.ResponseWriter, *http.Request) {
@@ -90,11 +90,11 @@ func F1(req any, f func(req any, w http.ResponseWriter)) func(http.ResponseWrite
 	}
 }
 
-func (r *Router) HandleProtoFunc1(path string, f func(req any, w http.ResponseWriter), req proto.Message) *mux.Route {
+func (r *MuxRouter) HandleProtoFunc1(path string, f func(req any, w http.ResponseWriter), req proto.Message) *mux.Route {
 	return r.R.HandleFunc(path, F1(&req, f))
 }
 
-func (r *Router) Use(mwf ...mux.MiddlewareFunc) {
+func (r *MuxRouter) Use(mwf ...mux.MiddlewareFunc) {
 	r.R.Use(mwf...)
 }
 

@@ -43,7 +43,7 @@ func (s *GrpcServer) Start(ctx context.Context) error {
 	go func() {
 		err = s.GrpcServer.Serve(listen)
 		if err != nil {
-			log.Error("grpc Serve ", address, " fail err=", err)
+			log.Panic("grpc Serve start ", address, " fail err=", err)
 			return
 		}
 	}()

@@ -45,7 +45,7 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("xxxxxxx"))
 	}, &bp.HelloRequest{}).Methods("POST")
-	httpServer := server.NewHttpServer(config.Cfg.Host, config.Cfg.Port, r)
+	httpServer := server.NewMuxServer(config.Cfg.Host, config.Cfg.Port, r)
 	grpcServer := server.NewGrpcServer(config.Cfg.Host, config.Cfg.RpcPort)
 	grpcServer.RegService(&bp.Greeter_ServiceDesc, &HelleServer{})
 	mainServer.AddServer(httpServer)
