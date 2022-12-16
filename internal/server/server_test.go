@@ -3,13 +3,14 @@ package server
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/bobgo0912/b0b-common/internal/config"
 	"github.com/bobgo0912/b0b-common/internal/constant"
 	"github.com/bobgo0912/b0b-common/internal/etcd"
 	"github.com/bobgo0912/b0b-common/internal/log"
 	hello "github.com/bobgo0912/b0b-common/internal/server/proto"
 	"github.com/bobgo0912/b0b-common/internal/util"
-	context2 "github.com/kataras/iris/v12/context"
+	"github.com/gorilla/handlers"
 	"google.golang.org/protobuf/proto"
 	"io"
 	"net/http"
@@ -39,39 +40,45 @@ func TestServer(t *testing.T) {
 	server := NewMainServer()
 	etcdClient := etcd.NewClientFromCnf()
 
-	//r := NewRouter()
-	//r.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
-	//	log.Info("test")
-	//	ip := RemoteIp(request)
-	//	log.Info(ip)
-	//	writer.Write([]byte("ttt"))
-	//}).Methods("GET")
-	////r.Use(GrpcMid)
-	//r.HandleProtoFunc("/proto", func(req proto.Message, w http.ResponseWriter) {
-	//	log.Info(req)
-	//	request := req.(*hello.HelloRequest)
-	//	fmt.Println(request)
-	//	panic("xx")
-	//	w.WriteHeader(http.StatusOK)
-	//	w.Write([]byte("xxxxxxx"))
-	//}, &hello.HelloRequest{}).Methods("POST")
-	//r.HandleProtoFunc1("/proto1", func(req any, w http.ResponseWriter) {
-	//	log.Info(req)
-	//	request := req.(*hello.HelloRequest)
-	//	fmt.Println(request)
-	//	w.WriteHeader(http.StatusOK)
-	//	w.Write([]byte("xxxxxxx"))
-	//}, &hello.HelloRequest{}).Methods("POST")
-	//httpServer := NewMuxServer(config.Cfg.Host, config.Cfg.Port, r)
-	irisServer := NewIrisServer(config.Cfg.Host, 9999)
-	irisServer.Iris.Get("test", func(c context2.Context) {
-		log.Info("xxdd")
-	})
+	r := NewRouter()
+	headersOk := handlers.AllowedHeaders([]string{"Proto"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	r.Use(handlers.CORS(headersOk, originsOk, methodsOk, handlers.AllowCredentials()))
+	r.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
+		log.Info("test")
+		ip := RemoteIp(request)
+		log.Info(ip)
+		writer.Write([]byte("ttt"))
+	}).Methods("GET")
+	//r.Use(GrpcMid)
+	r.HandleProtoFunc("/proto", func(req proto.Message, w http.ResponseWriter) {
+		log.Info(req)
+		request := req.(*hello.HelloRequest)
+		fmt.Println(request)
+		w.WriteHeader(http.StatusOK)
+		reply := hello.HelloReply{Message: "drrr"}
+		marshal, _ := proto.Marshal(&reply)
+		w.Write(marshal)
+	}, &hello.HelloRequest{}).Methods("POST", "OPTIONS")
+	r.HandleProtoFunc1("/proto1", func(req any, w http.ResponseWriter) {
+		log.Info(req)
+		request := req.(*hello.HelloRequest)
+		fmt.Println(request)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("xxxxxxx"))
+	}, &hello.HelloRequest{}).Methods("POST")
+
+	httpServer := NewMuxServer(config.Cfg.Host, config.Cfg.Port, r)
+	//irisServer := NewIrisServer(config.Cfg.Host, 9999)
+	//irisServer.Iris.Get("test", func(c context2.Context) {
+	//	log.Info("xxdd")
+	//})
 	grpcServer := NewGrpcServer(config.Cfg.Host, config.Cfg.RpcPort)
 	grpcServer.RegService(&hello.Greeter_ServiceDesc, &HelleServer{})
-	//server.AddServer(httpServer)
+	server.AddServer(httpServer)
 	server.AddServer(grpcServer)
-	server.AddServer(irisServer)
+	//server.AddServer(irisServer)
 	err := server.Start(ctx)
 	if err != nil {
 		t.Fatal(err)

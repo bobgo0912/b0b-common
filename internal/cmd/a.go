@@ -40,7 +40,7 @@ func main() {
 		writer.Write([]byte("ttt"))
 	}).Methods("GET")
 	//r.Use(GrpcMid)
-	r.HandleProtoFunc("/proto", func(req *proto.Message, w http.ResponseWriter) {
+	r.HandleProtoFunc("/proto", func(req proto.Message, w http.ResponseWriter) {
 		log.Info(req)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("xxxxxxx"))
