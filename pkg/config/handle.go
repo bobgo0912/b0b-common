@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/bobgo0912/b0b-common/internal/constant"
-	"github.com/bobgo0912/b0b-common/internal/log"
+	"github.com/bobgo0912/b0b-common/pkg/constant"
+	"github.com/bobgo0912/b0b-common/pkg/log"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"io"
 	"os"

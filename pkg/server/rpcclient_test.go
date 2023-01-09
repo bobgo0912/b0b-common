@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	h "github.com/bobgo0912/b0b-common/internal/server/proto"
+	h "github.com/bobgo0912/b0b-common/pkg/server/proto"
 
 	"google.golang.org/grpc"
 	"testing"

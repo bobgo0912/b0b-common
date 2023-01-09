@@ -2,8 +2,8 @@ package config
 
 import (
 	"context"
-	"github.com/bobgo0912/b0b-common/internal/etcd"
-	"github.com/bobgo0912/b0b-common/internal/log"
+	"github.com/bobgo0912/b0b-common/pkg/etcd"
+	"github.com/bobgo0912/b0b-common/pkg/log"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"testing"
 	"time"

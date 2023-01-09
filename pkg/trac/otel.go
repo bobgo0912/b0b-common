@@ -3,8 +3,8 @@ package trac
 import (
 	"context"
 	"fmt"
-	"github.com/bobgo0912/b0b-common/internal/config"
-	"github.com/bobgo0912/b0b-common/internal/constant"
+	"github.com/bobgo0912/b0b-common/pkg/config"
+	"github.com/bobgo0912/b0b-common/pkg/constant"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"

@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
-	"github.com/bobgo0912/b0b-common/internal/constant"
-	"github.com/bobgo0912/b0b-common/internal/log"
+	"github.com/bobgo0912/b0b-common/pkg/constant"
+	"github.com/bobgo0912/b0b-common/pkg/log"
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"

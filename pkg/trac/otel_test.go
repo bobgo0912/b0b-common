@@ -2,8 +2,8 @@ package trac
 
 import (
 	"context"
-	"github.com/bobgo0912/b0b-common/internal/config"
-	"github.com/bobgo0912/b0b-common/internal/log"
+	"github.com/bobgo0912/b0b-common/pkg/config"
+	"github.com/bobgo0912/b0b-common/pkg/log"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"testing"

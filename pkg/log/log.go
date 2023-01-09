@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/bobgo0912/b0b-common/internal/constant"
+	"github.com/bobgo0912/b0b-common/pkg/constant"
 	"go.uber.org/zap"
 	"os"
 )

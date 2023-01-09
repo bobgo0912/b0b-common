@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/bobgo0912/b0b-common/internal/config"
-	"github.com/bobgo0912/b0b-common/internal/etcd"
-	"github.com/bobgo0912/b0b-common/internal/log"
-	"github.com/bobgo0912/b0b-common/internal/server"
-	bp "github.com/bobgo0912/b0b-common/internal/server/proto"
+	"github.com/bobgo0912/b0b-common/pkg/config"
+	"github.com/bobgo0912/b0b-common/pkg/etcd"
+	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/bobgo0912/b0b-common/pkg/server"
+	bp "github.com/bobgo0912/b0b-common/pkg/server/proto"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"os"

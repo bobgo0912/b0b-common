@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/bobgo0912/b0b-common/internal/constant"
+	"github.com/bobgo0912/b0b-common/pkg/constant"
 )
 
 type ServerCfg struct {

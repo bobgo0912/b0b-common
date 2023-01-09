@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/bobgo0912/b0b-common/internal/log"
-	"github.com/bobgo0912/b0b-common/internal/util"
+	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/bobgo0912/b0b-common/pkg/util"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 

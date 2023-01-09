@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/bobgo0912/b0b-common/internal/config"
-	"github.com/bobgo0912/b0b-common/internal/log"
+	"github.com/bobgo0912/b0b-common/pkg/config"
+	"github.com/bobgo0912/b0b-common/pkg/log"
 	"github.com/kataras/iris/v12"
 	"time"
 )
