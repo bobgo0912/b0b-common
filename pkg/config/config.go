@@ -44,7 +44,10 @@ type RedisCfg struct {
 	Hosts    []string `json:"hosts"`
 	Password string   `json:"password"`
 	password string
-	Port     int `json:"port"`
+	Port     int    `json:"port"`
+	Size     int    `json:"size"`
+	Db       int    `json:"db"`
+	Host     string `json:"host"`
 }
 
 func (c *RedisCfg) MarshalJSON() ([]byte, error) {

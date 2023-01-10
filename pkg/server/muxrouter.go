@@ -71,6 +71,7 @@ func RemoteIp(req *http.Request) string {
 func (r *MuxRouter) HandleProtoFunc(path string, f func(req proto.Message, w http.ResponseWriter), req proto.Message) *mux.Route {
 	return r.R.HandleFunc(path, F(req, f))
 }
+
 func F1(req any, f func(req any, w http.ResponseWriter)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		protoName := r.Header[constant.ProtoHeader]
