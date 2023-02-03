@@ -15,6 +15,8 @@ var (
 	Infof  func(template string, args ...interface{})
 	Warnf  func(template string, args ...interface{})
 	Panicf func(template string, args ...interface{})
+	Debug  func(args ...interface{})
+	Debugf func(template string, args ...interface{})
 )
 
 func InitLog() {
@@ -34,4 +36,6 @@ func InitLog() {
 	Panicf = zap.S().Panicf
 	Warn = zap.S().Warn
 	Warnf = zap.S().Warnf
+	Debugf = zap.S().Debugf
+	Debug = zap.S().Debug
 }

@@ -28,7 +28,7 @@ func NewOtelGrpc(ctx context.Context, options ...otlptracegrpc.Option) (*OtelCli
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
 	}
-	resource := resource.NewWithAttributes(
+	resourceWithAttributes := resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String(config.Cfg.ServiceName),
 		semconv.ServiceVersionKey.String(config.Cfg.Version),
@@ -38,7 +38,7 @@ func NewOtelGrpc(ctx context.Context, options ...otlptracegrpc.Option) (*OtelCli
 	tracerProvider := tracesdk.NewTracerProvider(
 		tracesdk.WithBatcher(exporter),
 		tracesdk.WithSampler(GetSampler()),
-		tracesdk.WithResource(resource),
+		tracesdk.WithResource(resourceWithAttributes),
 	)
 	otel.SetTracerProvider(tracerProvider)
 	tracer := otel.GetTracerProvider().Tracer(

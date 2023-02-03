@@ -3,10 +3,15 @@ module github.com/bobgo0912/b0b-common
 go 1.19
 
 require (
+	github.com/Masterminds/squirrel v1.5.3
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/kataras/iris/v12 v12.1.8
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
 	go.etcd.io/etcd/api/v3 v3.5.6
 	go.etcd.io/etcd/client/v3 v3.5.6
@@ -58,6 +63,7 @@ require (
 	github.com/kataras/sitemap v0.0.5 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
+	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
