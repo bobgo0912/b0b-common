@@ -12,6 +12,7 @@ import (
 	"github.com/lann/builder"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -19,8 +20,7 @@ import (
 const otelName = "b0b-common/mysql"
 
 var (
-	//stuDb = Db("edu", nil)
-	stuDb *sql.DB
+	EduDb *sqlx.DB
 )
 
 type BaseStore[T any] struct {
@@ -28,18 +28,18 @@ type BaseStore[T any] struct {
 	TableName string
 }
 
-func Db(dbname string, c *config.MysqlCfg) *sqlx.DB {
+func Db(dbname string, c *config.MysqlCfg) (*sqlx.DB, error) {
 	if c == nil {
-		c = &config.Cfg.MysqlCfg
+		c = config.Cfg.MysqlCfg[dbname]
 	}
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True",
 		c.UserName, c.Password, c.Host, c.Port, dbname,
 	)
 	db, err := sqlx.Connect("mysql", dsn)
 	if err != nil {
-		log.Panic(err)
+		return nil, errors.Wrap(err, "Connect fail")
 	}
-	return db
+	return db, nil
 }
 
 func (s *BaseStore[T]) QueryById(ctx context.Context, id uint64, columns ...string) (*T, error) {
@@ -53,6 +53,11 @@ func (s *BaseStore[T]) QueryById(ctx context.Context, id uint64, columns ...stri
 		log.Debug("QueryById to sql fail err=", err.Error())
 		return nil, errors.Wrap(err, "squirrel toSql fail")
 	}
+	span.SetAttributes(
+		attribute.KeyValue{
+			Key:   semconv.DBStatementKey,
+			Value: attribute.StringValue(toSql),
+		})
 	row := s.Db.QueryRowxContext(spanCtx, toSql, param...)
 	if row.Err() != nil {
 		log.Debug("QueryxContext fail err=", err.Error())
@@ -70,6 +75,7 @@ func (s *BaseStore[T]) QueryById(ctx context.Context, id uint64, columns ...stri
 func (s *BaseStore[T]) QueryPage(ctx context.Context, sb squirrel.SelectBuilder, page, size uint64) (*Pagination[T], error) {
 	spanCtx, span := newOTELSpan(ctx, "DB.QueryPage")
 	defer span.End()
+	sb = sb.From(s.TableName)
 	count, err := s.Count(spanCtx, sb)
 	if err != nil {
 		return nil, errors.Wrap(err, "Count fail")
@@ -84,6 +90,11 @@ func (s *BaseStore[T]) QueryPage(ctx context.Context, sb squirrel.SelectBuilder,
 		log.Debug("QueryPage to toSql fail err=", err.Error())
 		return nil, errors.Wrap(err, "QueryPage toSql fail")
 	}
+	span.SetAttributes(
+		attribute.KeyValue{
+			Key:   semconv.DBStatementKey,
+			Value: attribute.StringValue(toSql),
+		})
 	query, err := s.Db.QueryxContext(spanCtx, toSql, param...)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -107,14 +118,19 @@ func (s *BaseStore[T]) QueryPage(ctx context.Context, sb squirrel.SelectBuilder,
 }
 
 type ToSql struct {
-	Columns string
+	pred interface{}
+	args []interface{}
 }
 
-func (t *ToSql) ToSql() (sql string, args []interface{}, err error) {
-	return t.Columns, nil, nil
+func (t ToSql) ToSql() (string, []interface{}, error) {
+	return t.pred.(string), nil, nil
 }
 func (s *BaseStore[T]) Count(ctx context.Context, sb squirrel.SelectBuilder) (uint64, error) {
-	toSql, i, err := builder.Set(sb, "Columns", &ToSql{Columns: "count(*)"}).(squirrel.SelectBuilder).ToSql()
+	t := ToSql{pred: "count(*)"}
+
+	set := builder.Set(sb, "Columns", []squirrel.Sqlizer{t})
+	selectBuilder := set.(squirrel.SelectBuilder)
+	toSql, i, err := selectBuilder.ToSql()
 	if err != nil {
 		log.Debug("Count toSql fail err=", err.Error())
 		return 0, errors.Wrap(err, "Count toSql fail")

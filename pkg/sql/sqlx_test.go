@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 	"fmt"
+	"github.com/Masterminds/squirrel"
 	"github.com/bobgo0912/b0b-common/pkg/config"
 	"github.com/jmoiron/sqlx"
 	"testing"
@@ -26,19 +27,30 @@ func TestCon(t *testing.T) {
 //	}
 func TestSDS(t *testing.T) {
 	cfg := config.ServerCfg{
-		MysqlCfg: config.MysqlCfg{
+		MysqlCfg: map[string]*config.MysqlCfg{"edu": {
 			UserName: "root",
 			Password: "123456",
 			Host:     "127.0.0.1",
 			Port:     3306,
 			Database: "edu",
-		},
+		}},
 	}
 	config.Cfg = &cfg
-	store := GetStuStore()
-	id, err := store.QueryById(context.Background(), 1)
+	store, err := GetStuStore()
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(id)
+	//id, err := store.QueryById(context.Background(), 1)
+	////id, err := store.Store.QueryById(context.Background(), 1)
+	////id, err := store.QueryById(context.Background(), 1)
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
+	//t.Log(id)
+
+	page, err := store.QueryPage(context.Background(), squirrel.Select("*"), 2, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(page)
 }
