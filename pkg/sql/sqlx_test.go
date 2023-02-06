@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/bobgo0912/b0b-common/pkg/config"
+	"github.com/bobgo0912/b0b-common/pkg/etcd"
+	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/bobgo0912/b0b-common/pkg/trac"
 	"github.com/jmoiron/sqlx"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"testing"
 )
 
@@ -49,6 +53,33 @@ func TestSDS(t *testing.T) {
 	//t.Log(id)
 
 	page, err := store.QueryPage(context.Background(), squirrel.Select("*"), 2, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(page)
+}
+func TestWithOtel(t *testing.T) {
+	ctx, can := context.WithCancel(context.Background())
+	defer can()
+	log.InitLog()
+	newConfig := config.NewConfig(config.Json)
+	newConfig.Category = "../config"
+	newConfig.InitConfig()
+	etcdClient := etcd.NewClientFromCnf()
+	err := newConfig.EtcdMerge(ctx, etcdClient)
+	if err != nil {
+		t.Fatal(err)
+	}
+	otelGrpc, err := trac.NewOtelGrpc(ctx, otlptracegrpc.WithEndpoint("localhost:4317"), otlptracegrpc.WithInsecure())
+	defer otelGrpc.ShutDown(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store, err := GetStuStore()
+	if err != nil {
+		t.Fatal(err)
+	}
+	page, err := store.QueryPage(context.Background(), squirrel.Select("*").Where(squirrel.Eq{"age": 10}), 2, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
