@@ -149,3 +149,28 @@ func TestA(t *testing.T) {
 	util.GetIp()
 
 }
+
+func TestBackServer_Start(t *testing.T) {
+	ctx, ca := context.WithCancel(context.Background())
+	defer ca()
+	log.InitLog()
+	newConfig := config.NewConfig(config.Json)
+	newConfig.Category = "../config"
+	newConfig.InitConfig()
+	server := NewMainServer()
+
+	etcdClient := etcd.NewClientFromCnf()
+	backServer := NewBackServer(config.Cfg.Host)
+	server.AddServer(backServer)
+
+	server.Discover(ctx, etcdClient)
+	err := server.Start(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	<-c
+
+}

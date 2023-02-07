@@ -20,7 +20,8 @@ import (
 const otelName = "b0b-common/mysql"
 
 var (
-	EduDb *sqlx.DB
+	EduDb  *sqlx.DB
+	TestDb *sqlx.DB
 )
 
 type BaseStore[T any] struct {
@@ -57,7 +58,8 @@ func (s *BaseStore[T]) QueryById(ctx context.Context, id uint64, columns ...stri
 		attribute.KeyValue{
 			Key:   semconv.DBStatementKey,
 			Value: attribute.StringValue(toSql),
-		})
+		},
+	)
 	row := s.Db.QueryRowxContext(spanCtx, toSql, param...)
 	if row.Err() != nil {
 		log.Debug("QueryxContext fail err=", err.Error())

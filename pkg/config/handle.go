@@ -20,6 +20,7 @@ const (
 )
 
 var Cfg *ServerCfg
+var Version string
 
 type HandleInterface interface {
 	Read([]byte)
