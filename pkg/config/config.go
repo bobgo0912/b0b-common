@@ -1,8 +1,9 @@
 package config
 
 import (
-	"encoding/json"
 	"github.com/bobgo0912/b0b-common/pkg/constant"
+	"github.com/bobgo0912/b0b-common/pkg/util"
+	"reflect"
 )
 
 type ServerCfg struct {
@@ -17,22 +18,22 @@ type ServerCfg struct {
 	RedisCfg    RedisCfg             `json:"redis" yaml:"redisCfg"`
 	NatsCfg     NatsCfg              `json:"nats" yaml:"natsCfg"`
 	EtcdCfg     EtcdCfg              `json:"etcd" yaml:"etcdCfg"`
+	OtelCfg     OtelCfg              `json:"otel" yaml:"otel"`
 	Version     string               `json:"-" yaml:"-"`
 }
 
 type MysqlCfg struct {
 	UserName string `json:"userName" yaml:"userName"`
-	Password string `json:"password" yaml:"password"`
+	Password string `json:"password" yaml:"password" mask:"true"`
 	Host     string `json:"host" yaml:"host"`
 	Port     int    `json:"port" yaml:"port"`
 	Database string `json:"database" yaml:"database"`
 }
 
-func (c *MysqlCfg) MarshalJSON() ([]byte, error) {
-	cn := c
-	cn.Password = "***"
-	return json.Marshal(&cn)
+func (c *MysqlCfg) String() string {
+	return util.ConfigMask(reflect.ValueOf(*c))
 }
+
 func (c *MysqlCfg) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	cn := c
 	cn.Password = "***"
@@ -41,59 +42,41 @@ func (c *MysqlCfg) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 type RedisCfg struct {
 	Hosts    []string `json:"hosts"`
-	Password string   `json:"password"`
-	password string
-	Port     int    `json:"port"`
-	Size     int    `json:"size"`
-	Db       int    `json:"db"`
-	Host     string `json:"host"`
+	Password string   `json:"password" mask:"true"`
+	Port     int      `json:"port"`
+	Size     int      `json:"size"`
+	Db       int      `json:"db"`
+	Host     string   `json:"host"`
 }
 
-func (c *RedisCfg) MarshalJSON() ([]byte, error) {
-	cn := c
-	cn.Password = "***"
-	return json.Marshal(&cn)
-}
-
-func (c *RedisCfg) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	cn := c
-	cn.Password = "***"
-	return unmarshal(&cn)
+func (c *RedisCfg) String() string {
+	return util.ConfigMask(reflect.ValueOf(*c))
 }
 
 type NatsCfg struct {
 	Host     string `json:"host"  yaml:"host"`
 	UserName string `json:"userName" yaml:"userName"`
-	Password string `json:"password" yaml:"password"`
-	password string
-	Port     int `json:"port" yaml:"port"`
+	Password string `json:"password" yaml:"password" mask:"true"`
+	Port     int    `json:"port" yaml:"port"`
 }
 
-func (c *NatsCfg) MarshalJSON() ([]byte, error) {
-	cn := c
-	cn.Password = "***"
-	return json.Marshal(&cn)
-}
-func (c *NatsCfg) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	cn := c
-	cn.Password = "***"
-	return unmarshal(&cn)
+func (c *NatsCfg) String() string {
+	return util.ConfigMask(reflect.ValueOf(*c))
 }
 
 type EtcdCfg struct {
 	Hosts    []string `json:"hosts"  yaml:"hosts"`
 	UserName string   `json:"userName" yaml:"userName"`
-	Password string   `json:"password" yaml:"password"`
-	password string
+	Password string   `json:"password" yaml:"password" mask:"true"`
 }
 
-func (c *EtcdCfg) MarshalJSON() ([]byte, error) {
-	cn := c
-	cn.Password = "***"
-	return json.Marshal(&cn)
+func (c *EtcdCfg) String() string {
+	return util.ConfigMask(reflect.ValueOf(*c))
 }
-func (c *EtcdCfg) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	cn := c
-	cn.Password = "***"
-	return unmarshal(&cn)
+
+type OtelCfg struct {
+	Host   string            `json:"host" yaml:"host"`
+	Port   int               `json:"port" yaml:"port"`
+	Type   constant.OtelType `json:"type" yaml:"type"`
+	Secure bool              `json:"secure" yaml:"secure"`
 }

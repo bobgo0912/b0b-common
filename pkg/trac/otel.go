@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/bobgo0912/b0b-common/pkg/config"
 	"github.com/bobgo0912/b0b-common/pkg/constant"
+	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -20,6 +22,29 @@ type OtelClient struct {
 	Tp       *tracesdk.TracerProvider
 	Tr       trace.Tracer
 	ShutDown func(ctx context.Context) error
+}
+
+func NewFromConfig(ctx context.Context) (*OtelClient, error) {
+	otelType := config.Cfg.OtelCfg.Type
+	switch otelType {
+	case constant.HttpOtelType:
+		url := fmt.Sprintf("%s:%d", config.Cfg.OtelCfg.Host, config.Cfg.OtelCfg.Port)
+		opts := []otlptracehttp.Option{otlptracehttp.WithEndpoint(url)}
+		if !config.Cfg.OtelCfg.Secure {
+			opts = append(opts, otlptracehttp.WithInsecure())
+		}
+		return NewOtelHttp(ctx, opts...)
+	case constant.RpcOtelType:
+		url := fmt.Sprintf("%s:%d", config.Cfg.OtelCfg.Host, config.Cfg.OtelCfg.Port)
+		opts := []otlptracegrpc.Option{otlptracegrpc.WithEndpoint(url)}
+		if !config.Cfg.OtelCfg.Secure {
+			opts = append(opts, otlptracegrpc.WithInsecure())
+		}
+		return NewOtelGrpc(ctx, opts...)
+	default:
+		log.Error("Otel not support type ", otelType)
+		return nil, errors.New("Otel not support type")
+	}
 }
 
 func NewOtelGrpc(ctx context.Context, options ...otlptracegrpc.Option) (*OtelClient, error) {

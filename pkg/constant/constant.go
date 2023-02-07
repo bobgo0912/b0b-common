@@ -18,3 +18,10 @@ const (
 	Test ENV = "test"
 	Prod ENV = "prod"
 )
+
+type OtelType string
+
+const (
+	HttpOtelType OtelType = "http"
+	RpcOtelType  OtelType = "rpc"
+)
