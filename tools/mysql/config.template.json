@@ -1,0 +1,17 @@
+{
+  "username": "root",
+  "password": "123456",
+  "protocol": "tcp",
+  "address": "127.0.0.1:3306",
+  "dbname": "test",
+  "tableName": "",
+  "outputDir": "out",
+  "outputPackage": "test"
+}
+
+
+
+
+
+
+
