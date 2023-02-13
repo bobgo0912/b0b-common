@@ -20,8 +20,9 @@ import (
 const otelName = "b0b-common/mysql"
 
 var (
-	EduDb  *sqlx.DB
-	TestDb *sqlx.DB
+	EduDb   *sqlx.DB
+	TestDb  *sqlx.DB
+	OrderDb *sqlx.DB
 )
 
 type BaseStore[T any] struct {
