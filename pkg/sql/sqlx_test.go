@@ -79,9 +79,14 @@ func TestWithOtel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	page, err := store.QueryPage(context.Background(), squirrel.Select("*").Where(squirrel.Eq{"age": 10}), 2, 10)
+	//page, err := store.QueryPage(context.Background(), squirrel.Select("*").Where(squirrel.Eq{"age": 10}), 2, 10)
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
+
+	list, err := store.QueryList(ctx, squirrel.Select("*").Where(squirrel.Eq{"id": 1, "name": "23"}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(page)
+	t.Log(list)
 }

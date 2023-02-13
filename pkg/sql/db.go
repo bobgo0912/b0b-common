@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/bobgo0912/b0b-common/pkg/config"
+	"github.com/bobgo0912/b0b-common/pkg/constant"
 	"github.com/bobgo0912/b0b-common/pkg/log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -97,6 +98,9 @@ func (s *BaseStore[T]) QueryPage(ctx context.Context, sb squirrel.SelectBuilder,
 		attribute.KeyValue{
 			Key:   semconv.DBStatementKey,
 			Value: attribute.StringValue(toSql),
+		}, attribute.KeyValue{
+			Key:   constant.DBParamKey,
+			Value: attribute.StringValue(fmt.Sprint(param)),
 		})
 	query, err := s.Db.QueryxContext(spanCtx, toSql, param...)
 	if err != nil {
@@ -118,6 +122,40 @@ func (s *BaseStore[T]) QueryPage(ctx context.Context, sb squirrel.SelectBuilder,
 	}
 	p.Data = ts
 	return &p, nil
+}
+func (s *BaseStore[T]) QueryList(ctx context.Context, sb squirrel.SelectBuilder) ([]*T, error) {
+	spanCtx, span := newOTELSpan(ctx, "DB.QueryList")
+	defer span.End()
+	from := sb.From(s.TableName)
+	toSql, param, err := from.ToSql()
+	span.SetAttributes(
+		attribute.KeyValue{
+			Key:   semconv.DBStatementKey,
+			Value: attribute.StringValue(toSql),
+		},
+		attribute.KeyValue{
+			Key:   constant.DBParamKey,
+			Value: attribute.StringValue(fmt.Sprint(param)),
+		})
+	query, err := s.Db.QueryxContext(spanCtx, toSql, param...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		log.Debug("QueryxContext fail err=", err.Error())
+		return nil, errors.Wrap(err, "QueryxContext fail")
+	}
+	ts := make([]*T, 0)
+	for query.Next() {
+		var d T
+		err = query.StructScan(&d)
+		if err != nil {
+			log.Debug("StructScan fail err=", err.Error())
+			return nil, errors.Wrap(err, "StructScan fail")
+		}
+		ts = append(ts, &d)
+	}
+	return ts, nil
 }
 
 type ToSql struct {
