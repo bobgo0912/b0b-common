@@ -150,11 +150,11 @@ func (s *Servers) watchServiceUpdate() {
 	}
 }
 
-func GetRpcNode(serviceName string) *EtcdReg {
+func GetNode(serviceName string, serverType Type) *EtcdReg {
 	if MainServers == nil {
 		return nil
 	}
-	key := util.GetStrings(string(RPC), serviceName)
+	key := util.GetStrings(string(serverType), serviceName)
 	for ke, reg := range MainServers.DiscoverServers.Services {
 		if strings.Contains(ke, key) {
 			return reg
@@ -163,10 +163,24 @@ func GetRpcNode(serviceName string) *EtcdReg {
 	return nil
 }
 
-func GetRpcNodeAddress(serviceName string) string {
-	node := GetRpcNode(serviceName)
+func GetRpcNodeAddress(serviceName string, serverType Type) string {
+	node := GetNode(serviceName, serverType)
 	if node == nil {
 		return ""
 	}
 	return fmt.Sprintf("%s:%d", node.Host, node.Port)
+}
+
+func GetNodeList(serviceName string, serverType Type) []*EtcdReg {
+	if MainServers == nil {
+		return nil
+	}
+	regs := make([]*EtcdReg, 0)
+	key := util.GetStrings(string(serverType), serviceName)
+	for ke, reg := range MainServers.DiscoverServers.Services {
+		if strings.Contains(ke, key) {
+			regs = append(regs, reg)
+		}
+	}
+	return regs
 }
