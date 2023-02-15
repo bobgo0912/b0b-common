@@ -52,11 +52,21 @@ func TestSDS(t *testing.T) {
 	//}
 	//t.Log(id)
 
-	page, err := store.QueryPage(context.Background(), squirrel.Select("*"), 2, 10)
+	//	page, err := store.QueryPage(context.Background(), squirrel.Select("*"), 2, 10)
+	var datas = []*Stu{{
+		Id:   123123,
+		Name: "123123",
+		Age:  123,
+	}, {
+		Id:   321321,
+		Name: "321321",
+		Age:  321,
+	}}
+	err = store.MultipleInsert(context.TODO(), datas)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(page)
+	//t.Log(page)
 }
 func TestWithOtel(t *testing.T) {
 	ctx, can := context.WithCancel(context.Background())

@@ -16,6 +16,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
+	"reflect"
+	"strings"
 )
 
 const otelName = "b0b-common/mysql"
@@ -203,4 +205,46 @@ func newOTELSpan(ctx context.Context, name string) (context.Context, trace.Span)
 	ctx, span := otel.Tracer(otelName).Start(ctx, name)
 	span.SetAttributes(semconv.DBSystemMySQL)
 	return ctx, span
+}
+
+func (s *BaseStore[T]) Update() {
+}
+
+func (s *BaseStore[T]) MultipleInsert(ctx context.Context, datas []*T) error {
+	if len(datas) < 1 {
+		return nil
+	}
+	_, span := newOTELSpan(ctx, "DB.MultipleInsert")
+	defer span.End()
+
+	r := reflect.ValueOf(*datas[0])
+	t := r.Type()
+	columns := make([]string, 0)
+	for i := 0; i < t.NumField(); i++ {
+		get := t.Field(i).Tag.Get("db")
+		if get == "" {
+			continue
+		}
+		strings.Join(columns, get)
+	}
+	insertBuilder := squirrel.Insert(s.TableName).Columns(columns...)
+	for _, data := range datas {
+		of := reflect.ValueOf(*data)
+		its := make([]interface{}, 0)
+		for i := 0; i < of.NumField(); i++ {
+			its = append(its, of.Field(i).Interface())
+		}
+		insertBuilder = insertBuilder.Values(its...)
+	}
+	toSql, param, err := insertBuilder.ToSql()
+	if err != nil {
+		log.Error("ToSql fail err=", err)
+		return errors.Wrap(err, "ToSql fail")
+	}
+	_, err = s.Db.Exec(toSql, param...)
+	if err != nil {
+		log.Error("Exec fail err=", err)
+		return errors.Wrap(err, "Exec fail")
+	}
+	return nil
 }
