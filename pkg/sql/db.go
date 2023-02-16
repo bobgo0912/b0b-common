@@ -222,7 +222,7 @@ func (s *BaseStore[T]) MultipleInsert(ctx context.Context, datas []*T) error {
 	columns := make([]string, 0)
 	for i := 0; i < t.NumField(); i++ {
 		get := t.Field(i).Tag.Get("db")
-		if get == "" {
+		if get == "" || get == "id" {
 			continue
 		}
 		strings.Join(columns, get)
