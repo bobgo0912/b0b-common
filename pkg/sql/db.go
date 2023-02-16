@@ -208,6 +208,11 @@ func newOTELSpan(ctx context.Context, name string) (context.Context, trace.Span)
 }
 
 func (s *BaseStore[T]) Update() {
+
+}
+
+func (s *BaseStore[T]) Tx(ctx context.Context) (*sql.Tx, error) {
+	return s.Db.BeginTx(ctx, nil)
 }
 
 func (s *BaseStore[T]) MultipleInsert(ctx context.Context, datas []*T) error {
@@ -217,6 +222,21 @@ func (s *BaseStore[T]) MultipleInsert(ctx context.Context, datas []*T) error {
 	_, span := newOTELSpan(ctx, "DB.MultipleInsert")
 	defer span.End()
 
+	insertBuilder := s.MultipleInsertBuilder(datas)
+	toSql, param, err := insertBuilder.ToSql()
+	if err != nil {
+		log.Error("ToSql fail err=", err)
+		return errors.Wrap(err, "ToSql fail")
+	}
+	_, err = s.Db.Exec(toSql, param...)
+	if err != nil {
+		log.Error("Exec fail err=", err)
+		return errors.Wrap(err, "Exec fail")
+	}
+	return nil
+}
+
+func (s *BaseStore[T]) MultipleInsertBuilder(datas []*T) squirrel.InsertBuilder {
 	r := reflect.ValueOf(*datas[0])
 	t := r.Type()
 	columns := make([]string, 0)
@@ -236,15 +256,5 @@ func (s *BaseStore[T]) MultipleInsert(ctx context.Context, datas []*T) error {
 		}
 		insertBuilder = insertBuilder.Values(its...)
 	}
-	toSql, param, err := insertBuilder.ToSql()
-	if err != nil {
-		log.Error("ToSql fail err=", err)
-		return errors.Wrap(err, "ToSql fail")
-	}
-	_, err = s.Db.Exec(toSql, param...)
-	if err != nil {
-		log.Error("Exec fail err=", err)
-		return errors.Wrap(err, "Exec fail")
-	}
-	return nil
+	return insertBuilder
 }
