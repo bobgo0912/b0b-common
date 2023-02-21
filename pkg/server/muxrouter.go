@@ -26,6 +26,10 @@ func (r *MuxRouter) HandleFunc(path string, f func(http.ResponseWriter, *http.Re
 	return r.R.HandleFunc(path, f)
 }
 
+func (r *MuxRouter) PathPrefix(tpl string) *mux.Route {
+	return r.R.PathPrefix(tpl)
+}
+
 type Fp func(req any, resp any) func(http.ResponseWriter, *http.Request)
 
 func F(req proto.Message, f func(req proto.Message, w http.ResponseWriter)) func(http.ResponseWriter, *http.Request) {

@@ -15,10 +15,10 @@ type ServerCfg struct {
 	RpcPort     int                  `json:"rpcPort" yaml:"rpcPort"`
 	ENV         constant.ENV         `json:"-" yaml:"-"`
 	MysqlCfg    map[string]*MysqlCfg `json:"mysql" yaml:"mysqlCfg"`
-	RedisCfg    RedisCfg             `json:"redis" yaml:"redisCfg"`
-	NatsCfg     NatsCfg              `json:"nats" yaml:"natsCfg"`
-	EtcdCfg     EtcdCfg              `json:"etcd" yaml:"etcdCfg"`
-	OtelCfg     OtelCfg              `json:"otel" yaml:"otel"`
+	RedisCfg    *RedisCfg            `json:"redis" yaml:"redisCfg"`
+	NatsCfg     *NatsCfg             `json:"nats" yaml:"natsCfg"`
+	EtcdCfg     *EtcdCfg             `json:"etcd" yaml:"etcdCfg"`
+	OtelCfg     *OtelCfg             `json:"otel" yaml:"otel"`
 	Version     string               `json:"-" yaml:"-"`
 }
 
