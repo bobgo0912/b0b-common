@@ -17,6 +17,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 	"reflect"
+	"strings"
 )
 
 const otelName = "b0b-common/mysql"
@@ -244,9 +245,10 @@ func (s *BaseStore[T]) MultipleInsertBuilder(datas []*T) squirrel.InsertBuilder 
 		if get == "" {
 			continue
 		}
-		columns = append(columns, get)
+		columns = append(columns, fmt.Sprintf("`%s`", get))
 	}
-	insertBuilder := squirrel.Insert(s.TableName).Columns(columns...)
+	join := strings.Join(columns, ",")
+	insertBuilder := squirrel.Insert(s.TableName).Columns(join)
 	for _, data := range datas {
 		of := reflect.ValueOf(*data)
 		its := make([]interface{}, 0)
@@ -266,9 +268,10 @@ func (s *BaseStore[T]) InsertBuilder(data *T) squirrel.InsertBuilder {
 		if get == "" {
 			continue
 		}
-		columns = append(columns, get)
+		columns = append(columns, fmt.Sprintf("`%s`", get))
 	}
-	insertBuilder := squirrel.Insert(s.TableName).Columns(columns...)
+	join := strings.Join(columns, ",")
+	insertBuilder := squirrel.Insert(s.TableName).Columns(join)
 	of := reflect.ValueOf(*data)
 	its := make([]interface{}, 0)
 	for i := 0; i < of.NumField(); i++ {
