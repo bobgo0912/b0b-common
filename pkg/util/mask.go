@@ -22,7 +22,6 @@ func ConfigMask(value reflect.Value) string {
 		sb.WriteString(":")
 		sb.WriteString(fmt.Sprint(ve))
 		sb.WriteString(" ")
-		fmt.Println(name, ve)
 	}
 	return sb.String()
 }
