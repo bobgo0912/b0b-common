@@ -248,7 +248,7 @@ func (s *BaseStore[T]) MultipleInsertBuilder(datas []*T) squirrel.InsertBuilder 
 		columns = append(columns, fmt.Sprintf("`%s`", get))
 	}
 	join := strings.Join(columns, ",")
-	insertBuilder := squirrel.Insert(s.TableName).Columns(join)
+	insertBuilder := squirrel.Insert(fmt.Sprintf("`%s`", s.TableName)).Columns(join)
 	for _, data := range datas {
 		of := reflect.ValueOf(*data)
 		its := make([]interface{}, 0)
@@ -271,7 +271,7 @@ func (s *BaseStore[T]) InsertBuilder(data *T) squirrel.InsertBuilder {
 		columns = append(columns, fmt.Sprintf("`%s`", get))
 	}
 	join := strings.Join(columns, ",")
-	insertBuilder := squirrel.Insert(s.TableName).Columns(join)
+	insertBuilder := squirrel.Insert(fmt.Sprintf("`%s`", s.TableName)).Columns(join)
 	of := reflect.ValueOf(*data)
 	its := make([]interface{}, 0)
 	for i := 0; i < of.NumField(); i++ {
