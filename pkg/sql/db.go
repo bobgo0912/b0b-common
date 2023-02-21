@@ -242,7 +242,7 @@ func (s *BaseStore[T]) MultipleInsertBuilder(datas []*T) squirrel.InsertBuilder 
 	columns := make([]string, 0)
 	for i := 0; i < t.NumField(); i++ {
 		get := t.Field(i).Tag.Get("db")
-		if get == "" || get == "id" {
+		if get == "" {
 			continue
 		}
 		strings.Join(columns, get)
@@ -257,4 +257,45 @@ func (s *BaseStore[T]) MultipleInsertBuilder(datas []*T) squirrel.InsertBuilder 
 		insertBuilder = insertBuilder.Values(its...)
 	}
 	return insertBuilder
+}
+func (s *BaseStore[T]) InsertBuilder(data *T) squirrel.InsertBuilder {
+	r := reflect.ValueOf(*data)
+	t := r.Type()
+	columns := make([]string, 0)
+	for i := 0; i < t.NumField(); i++ {
+		get := t.Field(i).Tag.Get("db")
+		if get == "" {
+			continue
+		}
+		strings.Join(columns, get)
+	}
+	insertBuilder := squirrel.Insert(s.TableName).Columns(columns...)
+	of := reflect.ValueOf(*data)
+	its := make([]interface{}, 0)
+	for i := 0; i < of.NumField(); i++ {
+		its = append(its, of.Field(i).Interface())
+	}
+	insertBuilder = insertBuilder.Values(its...)
+
+	return insertBuilder
+}
+func (s *BaseStore[T]) Insert(ctx context.Context, data *T) error {
+	if data == nil {
+		return nil
+	}
+	_, span := newOTELSpan(ctx, "DB.Insert")
+	defer span.End()
+
+	insertBuilder := s.InsertBuilder(data)
+	toSql, param, err := insertBuilder.ToSql()
+	if err != nil {
+		log.Error("ToSql fail err=", err)
+		return errors.Wrap(err, "ToSql fail")
+	}
+	_, err = s.Db.Exec(toSql, param...)
+	if err != nil {
+		log.Error("Exec fail err=", err)
+		return errors.Wrap(err, "Exec fail")
+	}
+	return nil
 }
