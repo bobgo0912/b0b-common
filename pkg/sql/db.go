@@ -62,6 +62,44 @@ func (s *BaseStore[T]) QueryById(ctx context.Context, id uint64, columns ...stri
 		attribute.KeyValue{
 			Key:   semconv.DBStatementKey,
 			Value: attribute.StringValue(toSql),
+		}, attribute.KeyValue{
+			Key:   constant.DBParamKey,
+			Value: attribute.StringValue(fmt.Sprint(param)),
+		},
+	)
+	row := s.Db.QueryRowxContext(spanCtx, toSql, param...)
+	if row.Err() != nil {
+		log.Debug("QueryxContext fail err=", err.Error())
+		return nil, errors.Wrap(err, "Query fail")
+	}
+	var d T
+	err = row.StructScan(&d)
+	if err != nil {
+		log.Debug("StructScan fail err=", err.Error())
+		return nil, errors.Wrap(err, "StructScan fail")
+	}
+	return &d, nil
+}
+func (s *BaseStore[T]) QueryByCondition(ctx context.Context, sb squirrel.SelectBuilder, columns ...string) (*T, error) {
+	spanCtx, span := newOTELSpan(ctx, "DB.QueryByCondition")
+	defer span.End()
+	if len(columns) < 1 {
+		columns = append(columns, "*")
+	}
+
+	toSql, param, err := sb.From(s.TableName).ToSql()
+	if err != nil {
+		log.Debug("QueryByCondition to sql fail err=", err.Error())
+		return nil, errors.Wrap(err, "squirrel toSql fail")
+	}
+	span.SetAttributes(
+		attribute.KeyValue{
+			Key:   semconv.DBStatementKey,
+			Value: attribute.StringValue(toSql),
+		},
+		attribute.KeyValue{
+			Key:   constant.DBParamKey,
+			Value: attribute.StringValue(fmt.Sprint(param)),
 		},
 	)
 	row := s.Db.QueryRowxContext(spanCtx, toSql, param...)
