@@ -14,10 +14,10 @@ type ServerCfg struct {
 	Port        int                  `json:"port" yaml:"port"`
 	RpcPort     int                  `json:"rpcPort" yaml:"rpcPort"`
 	ENV         constant.ENV         `json:"-" yaml:"-"`
-	MysqlCfg    map[string]*MysqlCfg `json:"mysql" yaml:"mysqlCfg"`
-	RedisCfg    *RedisCfg            `json:"redis" yaml:"redisCfg"`
-	NatsCfg     *NatsCfg             `json:"nats" yaml:"natsCfg"`
-	EtcdCfg     *EtcdCfg             `json:"etcd" yaml:"etcdCfg"`
+	MysqlCfg    map[string]*MysqlCfg `json:"mysql" yaml:"mysql"`
+	RedisCfg    *RedisCfg            `json:"redis" yaml:"redis"`
+	NatsCfg     *NatsCfg             `json:"nats" yaml:"nats"`
+	EtcdCfg     *EtcdCfg             `json:"etcd" yaml:"etcd"`
 	OtelCfg     *OtelCfg             `json:"otel" yaml:"otel"`
 	Version     string               `json:"-" yaml:"-"`
 }
@@ -34,19 +34,13 @@ func (c *MysqlCfg) String() string {
 	return util.ConfigMask(reflect.ValueOf(*c))
 }
 
-func (c *MysqlCfg) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	cn := c
-	cn.Password = "***"
-	return unmarshal(&cn)
-}
-
 type RedisCfg struct {
-	Hosts    []string `json:"hosts"`
-	Password string   `json:"password" mask:"true"`
-	Port     int      `json:"port"`
-	Size     int      `json:"size"`
-	Db       int      `json:"db"`
-	Host     string   `json:"host"`
+	Hosts    []string `json:"hosts" yaml:"hosts"`
+	Password string   `json:"password" yaml:"password" mask:"true"`
+	Port     int      `json:"port" yaml:"port"`
+	Size     int      `json:"size" yaml:"size"`
+	Db       int      `json:"db" yaml:"db"`
+	Host     string   `json:"host" yaml:"host"`
 }
 
 func (c *RedisCfg) String() string {

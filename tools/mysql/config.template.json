@@ -3,10 +3,10 @@
   "password": "123456",
   "protocol": "tcp",
   "address": "127.0.0.1:3306",
-  "dbname": "test",
+  "dbname": "order",
   "tableName": "",
   "outputDir": "out",
-  "outputPackage": "test"
+  "outputPackage": "order"
 }
 
 

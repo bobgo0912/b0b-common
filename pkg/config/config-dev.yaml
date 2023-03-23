@@ -1,15 +1,21 @@
+nodeId: '123'
+serviceName: testServers
 host: 0.0.0.0
+hostName: test
 port: 8888
-rpc: 8889
+rpcPort: 8889
 mysql:
-  userName: root
-  password: '123456'
-  host: 127.0.0.1
-  port: 3306
-  database: oa_settle
+  edu:
+    userName: root
+    password: '123456'
+    host: 127.0.0.1
+    port: 3306
+    database: oa_settle
 redis:
   hosts:
-    - 127.0.01
+    - 127.0.01:6379
+  db: 0
+  host: 127.0.01
   password: ''
   port: 6379
 nats:
@@ -17,3 +23,8 @@ nats:
   userName: ''
   password: ''
   port: 4222
+etcd:
+  hosts:
+    - 127.0.0.1:2379
+  userName: ''
+  password: ''
