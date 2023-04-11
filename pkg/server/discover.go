@@ -66,6 +66,7 @@ func (d *Discover) Start() {
 					time.Sleep(10 * time.Second)
 					continue
 				}
+				key = fmt.Sprintf("%s/%d", key, int64(leaseResp.ID))
 				if _, err := d.EtcdClient.Put(d.ServerCtx, key, toJson, clientv3.WithLease(leaseResp.ID)); err != nil {
 					log.Error("etcd Put fail err=", err)
 					time.Sleep(10 * time.Second)
@@ -112,7 +113,7 @@ func (s *Servers) initService() error {
 	for _, kv := range rangeResp.Kvs {
 		k := strings.TrimPrefix(string(kv.Key), key)
 		split := strings.Split(k, "/")
-		if len(split) != 3 {
+		if len(split) != 4 {
 			continue
 		}
 		mKey := util.GetStrings(split[0], split[1], split[2])
@@ -138,7 +139,7 @@ func (s *Servers) watchServiceUpdate() {
 		for _, event := range watchResp.Events {
 			k := strings.TrimPrefix(string(event.Kv.Key), key)
 			split := strings.Split(k, "/")
-			if len(split) != 3 {
+			if len(split) != 4 {
 				continue
 			}
 			mKey := util.GetStrings(split[0], split[1], split[2])
