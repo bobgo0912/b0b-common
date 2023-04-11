@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -57,6 +58,34 @@ func NewOtelGrpc(ctx context.Context, options ...otlptracegrpc.Option) (*OtelCli
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String(config.Cfg.ServiceName),
 		semconv.ServiceVersionKey.String(config.Cfg.Version),
+		semconv.ServiceInstanceIDKey.String(config.Cfg.NodeId),
+		attribute.String("env", string(config.Cfg.ENV)),
+		attribute.String("nodeID", config.Cfg.NodeId),
+	)
+	tracerProvider := tracesdk.NewTracerProvider(
+		tracesdk.WithBatcher(exporter),
+		tracesdk.WithSampler(GetSampler()),
+		tracesdk.WithResource(resourceWithAttributes),
+	)
+	otel.SetTracerProvider(tracerProvider)
+	tracer := otel.GetTracerProvider().Tracer(
+		config.Cfg.ServiceName,
+		trace.WithInstrumentationVersion(config.Cfg.Version),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+	return &OtelClient{Tp: tracerProvider, Tr: tracer, ShutDown: tracerProvider.Shutdown}, nil
+}
+
+func NewOtelGrpcJaeger(options ...jaeger.CollectorEndpointOption) (*OtelClient, error) {
+	exporter, err := jaeger.New(jaeger.WithCollectorEndpoint(options...))
+	if err != nil {
+		return nil, err
+	}
+	resourceWithAttributes := resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String(config.Cfg.ServiceName),
+		semconv.ServiceVersionKey.String(config.Cfg.Version),
+		semconv.ServiceInstanceIDKey.String(config.Cfg.NodeId),
 		attribute.String("env", string(config.Cfg.ENV)),
 		attribute.String("nodeID", config.Cfg.NodeId),
 	)
@@ -91,6 +120,7 @@ func NewOtelHttp(ctx context.Context, options ...otlptracehttp.Option) (*OtelCli
 			attribute.String("nodeID", config.Cfg.NodeId),
 		)),
 	)
+
 	otel.SetTracerProvider(tracerProvider)
 	tracer := otel.GetTracerProvider().Tracer(
 		config.Cfg.ServiceName,

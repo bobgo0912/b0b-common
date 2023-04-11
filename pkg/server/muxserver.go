@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bobgo0912/b0b-common/pkg/config"
 	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/bobgo0912/b0b-common/pkg/server/common"
 	"net/http"
 	"time"
 )
@@ -41,7 +42,7 @@ func NewMuxServer(host string, port int, router *MuxRouter, options ...Option) *
 	return &MuxServer{
 		Server: Server{
 			Ctx:      context.Background(),
-			Type:     Http,
+			Type:     common.Http,
 			Port:     port,
 			Host:     host,
 			HostName: config.Cfg.HostName,

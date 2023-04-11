@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bobgo0912/b0b-common/pkg/config"
 	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/bobgo0912/b0b-common/pkg/server/common"
 	"github.com/kataras/iris/v12"
 	"time"
 )
@@ -20,7 +21,7 @@ func NewIrisServer(host string, port int) *IrisServer {
 	return &IrisServer{
 		Server: Server{
 			Ctx:      context.Background(),
-			Type:     Http,
+			Type:     common.Http,
 			Port:     port,
 			Host:     host,
 			HostName: config.Cfg.HostName,

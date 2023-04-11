@@ -5,16 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/bobgo0912/b0b-common/pkg/server/common"
 	"github.com/bobgo0912/b0b-common/pkg/util"
 	clientv3 "go.etcd.io/etcd/client/v3"
-)
-
-type Type string
-
-const (
-	Http Type = "http"
-	RPC  Type = "rpc"
-	Back Type = "back"
 )
 
 var MainServers *MainServer
@@ -24,20 +17,14 @@ type Interface interface {
 	Ctx() context.Context
 	GetInfo() Server
 }
+type InterfaceOption func(*Interface) error
 
 type Server struct {
 	Ctx      context.Context `json:"-"`
-	Type     Type            `json:"type"`
+	Type     common.Type     `json:"type"`
 	Port     int             `json:"port"`
 	Host     string          `json:"host"`
 	HostName string          `json:"hostName"`
-}
-
-type EtcdReg struct {
-	Type     Type   `json:"type"`
-	Port     int    `json:"port"`
-	Host     string `json:"host"`
-	HostName string `json:"hostName"`
 }
 
 func (s *Server) ToJson() (string, error) {

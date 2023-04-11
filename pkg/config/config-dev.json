@@ -3,7 +3,7 @@
   "serviceName": "testServers",
   "host": "0.0.0.0",
   "hostName": "test",
-  "port": 8888,
+  "port": 8881,
   "rpcPort": 8889,
   "mysql": {
     "edu": {

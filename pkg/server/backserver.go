@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bobgo0912/b0b-common/pkg/config"
 	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/bobgo0912/b0b-common/pkg/server/common"
 )
 
 type BackServer struct {
@@ -15,7 +16,7 @@ func NewBackServer(host string) *BackServer {
 	return &BackServer{
 		Server: Server{
 			Ctx:      context.Background(),
-			Type:     Back,
+			Type:     common.Back,
 			Host:     host,
 			Port:     0,
 			HostName: config.Cfg.HostName,

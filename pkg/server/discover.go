@@ -3,10 +3,14 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/bobgo0912/b0b-common/pkg/config"
 	"github.com/bobgo0912/b0b-common/pkg/constant"
 	"github.com/bobgo0912/b0b-common/pkg/log"
+	"github.com/bobgo0912/b0b-common/pkg/server/balancer"
+	"github.com/bobgo0912/b0b-common/pkg/server/common"
+	"github.com/bobgo0912/b0b-common/pkg/server/model"
 	"github.com/bobgo0912/b0b-common/pkg/util"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
@@ -20,7 +24,8 @@ type Servers struct {
 	Ctx        context.Context
 	EtcdClient *clientv3.Client
 	Lock       sync.Mutex
-	Services   map[string]*EtcdReg
+	Services   map[string]*model.EtcdReg
+	Balancer   *balancer.P2cBalancer
 	Error      error
 }
 
@@ -80,7 +85,11 @@ func (d *Discover) Start() {
 }
 
 func NewServices(ctx context.Context, etcdClient *clientv3.Client) *Servers {
-	return &Servers{Ctx: ctx, Lock: sync.Mutex{}, EtcdClient: etcdClient, Services: make(map[string]*EtcdReg, 0)}
+	return &Servers{Ctx: ctx, Lock: sync.Mutex{},
+		EtcdClient: etcdClient,
+		Services:   make(map[string]*model.EtcdReg, 0),
+		Balancer:   balancer.NewP2cBalancer(),
+	}
 }
 
 func (s *Servers) Start() {
@@ -107,13 +116,16 @@ func (s *Servers) initService() error {
 			continue
 		}
 		mKey := util.GetStrings(split[0], split[1], split[2])
-		var sd EtcdReg
+		var sd *model.EtcdReg
 		err := json.Unmarshal(kv.Value, &sd)
 		if err != nil {
 			log.Warn("InitService etcd Unmarshal %s fail err=%v", string(kv.Value), err)
 			continue
 		}
-		s.Services[mKey] = &sd
+		rKey := util.GetStrings(split[0], split[1])
+		sd.Key = mKey
+		s.Services[mKey] = sd
+		s.Balancer.Add(rKey, sd)
 	}
 	s.Lock.Unlock()
 	return nil
@@ -133,16 +145,20 @@ func (s *Servers) watchServiceUpdate() {
 			s.Lock.Lock()
 			switch event.Type {
 			case mvccpb.PUT:
-				var sd EtcdReg
+				var sd *model.EtcdReg
 				err := json.Unmarshal(event.Kv.Value, &sd)
 				if err != nil {
 					log.Warn("InitService etcd Unmarshal %s fail err=%v", string(event.Kv.Value), err)
 					continue
 				}
-				s.Services[mKey] = &sd
+				rKey := util.GetStrings(split[0], split[1])
+				sd.Key = mKey
+				s.Services[mKey] = sd
+				s.Balancer.Add(rKey, sd)
 				break
 			case mvccpb.DELETE: //DELETE事件，目录中有key被删掉(Lease过期，key 也会被删掉)
 				delete(s.Services, mKey)
+				s.Balancer.Remove(mKey)
 				break
 			}
 			s.Lock.Unlock()
@@ -150,7 +166,7 @@ func (s *Servers) watchServiceUpdate() {
 	}
 }
 
-func GetNode(serviceName string, serverType Type) *EtcdReg {
+func GetNode(serviceName string, serverType common.Type) *model.EtcdReg {
 	if MainServers == nil {
 		return nil
 	}
@@ -162,8 +178,19 @@ func GetNode(serviceName string, serverType Type) *EtcdReg {
 	}
 	return nil
 }
+func GetNodeN(serviceName string, serverType common.Type) (*model.EtcdReg, error) {
+	if MainServers == nil {
+		return nil, errors.New("main server not init")
+	}
+	key := util.GetStrings(string(serverType), serviceName)
+	balance, err := MainServers.DiscoverServers.Balancer.Balance(key)
+	if err != nil {
+		return nil, err
+	}
+	return balance, nil
+}
 
-func GetRpcNodeAddress(serviceName string, serverType Type) string {
+func GetRpcNodeAddress(serviceName string, serverType common.Type) string {
 	node := GetNode(serviceName, serverType)
 	if node == nil {
 		return ""
@@ -171,11 +198,11 @@ func GetRpcNodeAddress(serviceName string, serverType Type) string {
 	return fmt.Sprintf("%s:%d", node.Host, node.Port)
 }
 
-func GetNodeList(serviceName string, serverType Type) []*EtcdReg {
+func GetNodeList(serviceName string, serverType common.Type) []*model.EtcdReg {
 	if MainServers == nil {
 		return nil
 	}
-	regs := make([]*EtcdReg, 0)
+	regs := make([]*model.EtcdReg, 0)
 	key := util.GetStrings(string(serverType), serviceName)
 	for ke, reg := range MainServers.DiscoverServers.Services {
 		if strings.Contains(ke, key) {
