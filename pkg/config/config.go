@@ -10,7 +10,7 @@ type ServerCfg struct {
 	NodeId      string               `json:"nodeId" yaml:"nodeId"`
 	ServiceName string               `json:"serviceName" yaml:"serviceName"`
 	Host        string               `json:"host" yaml:"host"`
-	HostName    string               `json:"hostName" yaml:"hostName"`
+	HostName    string               `json:"hostname" yaml:"hostname"`
 	Port        int                  `json:"port" yaml:"port"`
 	RpcPort     int                  `json:"rpcPort" yaml:"rpcPort"`
 	ENV         constant.ENV         `json:"-" yaml:"-"`
@@ -19,11 +19,14 @@ type ServerCfg struct {
 	NatsCfg     *NatsCfg             `json:"nats" yaml:"nats"`
 	EtcdCfg     *EtcdCfg             `json:"etcd" yaml:"etcd"`
 	OtelCfg     *OtelCfg             `json:"otel" yaml:"otel"`
+	EsCfg       *ESCfg               `json:"es" yaml:"es"`
+	RpcCfg      map[string]*RpcCfg   `json:"rpc" yaml:"rpc"`
+	Others      map[string]string    `json:"others" yaml:"others"`
 	Version     string               `json:"-" yaml:"-"`
 }
 
 type MysqlCfg struct {
-	UserName string `json:"userName" yaml:"userName"`
+	Username string `json:"username" yaml:"username"`
 	Password string `json:"password" yaml:"password" mask:"true"`
 	Host     string `json:"host" yaml:"host"`
 	Port     int    `json:"port" yaml:"port"`
@@ -49,7 +52,7 @@ func (c *RedisCfg) String() string {
 
 type NatsCfg struct {
 	Host     string `json:"host"  yaml:"host"`
-	UserName string `json:"userName" yaml:"userName"`
+	Username string `json:"username" yaml:"username"`
 	Password string `json:"password" yaml:"password" mask:"true"`
 	Port     int    `json:"port" yaml:"port"`
 }
@@ -59,9 +62,9 @@ func (c *NatsCfg) String() string {
 }
 
 type EtcdCfg struct {
-	Hosts    []string `json:"hosts"  yaml:"hosts"`
-	UserName string   `json:"userName" yaml:"userName"`
-	Password string   `json:"password" yaml:"password" mask:"true"`
+	Host     string `json:"host"  yaml:"host"`
+	Username string `json:"username" yaml:"username"`
+	Password string `json:"password" yaml:"password" mask:"true"`
 }
 
 func (c *EtcdCfg) String() string {
@@ -73,4 +76,16 @@ type OtelCfg struct {
 	Port   int               `json:"port" yaml:"port"`
 	Type   constant.OtelType `json:"type" yaml:"type"`
 	Secure bool              `json:"secure" yaml:"secure"`
+}
+
+type RpcCfg struct {
+	Name string `json:"name" yaml:"name"`
+	Host string `json:"host" yaml:"host"`
+	Port int    `json:"port" yaml:"port"`
+}
+
+type ESCfg struct {
+	Host     string `json:"host"  yaml:"host"`
+	Username string `json:"username" yaml:"username"`
+	Password string `json:"password" yaml:"password" mask:"true"`
 }

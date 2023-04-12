@@ -32,7 +32,7 @@ func TestCon(t *testing.T) {
 func TestSDS(t *testing.T) {
 	cfg := config.ServerCfg{
 		MysqlCfg: map[string]*config.MysqlCfg{"edu": {
-			UserName: "root",
+			Username: "root",
 			Password: "123456",
 			Host:     "127.0.0.1",
 			Port:     3306,
@@ -75,8 +75,11 @@ func TestWithOtel(t *testing.T) {
 	newConfig := config.NewConfig(config.Json)
 	newConfig.Category = "../config"
 	newConfig.InitConfig()
-	etcdClient := etcd.NewClientFromCnf()
-	err := newConfig.EtcdMerge(ctx, etcdClient)
+	etcdClient, err := etcd.NewClientFromCnf()
+	if err != nil {
+		log.Panicf("etcd init fail")
+	}
+	err = newConfig.EtcdMerge(ctx, etcdClient)
 	if err != nil {
 		t.Fatal(err)
 	}

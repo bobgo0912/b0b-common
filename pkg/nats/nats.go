@@ -22,7 +22,7 @@ type JetClient struct {
 }
 
 func NewClient() (*Client, error) {
-	nc, err := nats.Connect(config.Cfg.NatsCfg.Host, nats.UserInfo(config.Cfg.NatsCfg.UserName, config.Cfg.NatsCfg.Password))
+	nc, err := nats.Connect(config.Cfg.NatsCfg.Host, nats.UserInfo(config.Cfg.NatsCfg.Username, config.Cfg.NatsCfg.Password))
 	if err != nil {
 		return nil, errors.Wrap(err, "connect fail")
 	}
@@ -30,7 +30,7 @@ func NewClient() (*Client, error) {
 }
 
 func NewJetClient() (*JetClient, error) {
-	nc, err := nats.Connect(config.Cfg.NatsCfg.Host, nats.UserInfo(config.Cfg.NatsCfg.UserName, config.Cfg.NatsCfg.Password))
+	nc, err := nats.Connect(config.Cfg.NatsCfg.Host, nats.UserInfo(config.Cfg.NatsCfg.Username, config.Cfg.NatsCfg.Password))
 	if err != nil {
 		return nil, errors.Wrap(err, "connect fail")
 	}

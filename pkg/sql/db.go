@@ -38,7 +38,7 @@ func Db(dbname string, c *config.MysqlCfg) (*sqlx.DB, error) {
 		c = config.Cfg.MysqlCfg[dbname]
 	}
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True",
-		c.UserName, c.Password, c.Host, c.Port, dbname,
+		c.Username, c.Password, c.Host, c.Port, dbname,
 	)
 	db, err := sqlx.Connect("mysql", dsn)
 	if err != nil {

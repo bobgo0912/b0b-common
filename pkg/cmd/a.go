@@ -6,6 +6,7 @@ import (
 	"github.com/bobgo0912/b0b-common/pkg/etcd"
 	"github.com/bobgo0912/b0b-common/pkg/log"
 	"github.com/bobgo0912/b0b-common/pkg/server"
+	"github.com/bobgo0912/b0b-common/pkg/server/common"
 	bp "github.com/bobgo0912/b0b-common/pkg/server/proto"
 	"google.golang.org/protobuf/proto"
 	"net/http"
@@ -32,7 +33,10 @@ func main() {
 	newConfig.Category = "../config"
 	newConfig.InitConfig()
 	mainServer := server.NewMainServer()
-	etcdClient := etcd.NewClientFromCnf()
+	etcdClient, err := etcd.NewClientFromCnf()
+	if err != nil {
+		log.Panicf("etcd init fail")
+	}
 
 	r := server.NewRouter()
 	r.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
@@ -50,14 +54,14 @@ func main() {
 	grpcServer.RegService(&bp.Greeter_ServiceDesc, &HelleServer{})
 	mainServer.AddServer(httpServer)
 	mainServer.AddServer(grpcServer)
-	err := mainServer.Start(ctx)
+	err = mainServer.Start(ctx)
 	if err != nil {
 		log.Panic(err)
 	}
 	mainServer.Discover(ctx, etcdClient)
 	//
 	time.Sleep(time.Second * 15)
-	address := server.GetRpcNodeAddress("testServers")
+	address := server.GetRpcNodeAddress("testServers", common.Http)
 	if address == "" {
 		log.Info(" bad address")
 	}
