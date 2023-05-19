@@ -29,16 +29,14 @@ func NewIrisServer(host string, port int) *IrisServer {
 		Iris: iris.New(),
 	}
 }
-func (s *IrisServer) Start(ctx context.Context) error {
+func (s *IrisServer) Start(ctx context.Context, opts ...iris.Configurator) error {
 	addr := fmt.Sprintf("%s:%d", s.Server.Host, s.Server.Port)
 	log.Infof("irisServer %s start", addr)
 	go func() {
-
 		err := s.Iris.Run(
 			iris.Addr(addr), // 启动服务，监控地址和端口
-			iris.WithoutServerError(iris.ErrServerClosed), // 忽略服务器错误
-			iris.WithOptimizations,                        // 让程序自身尽可能的优化
-			iris.WithCharset("UTF-8"))
+			opts...,
+		)
 		if err != nil {
 			log.Panic("irisServer start fail err=", err)
 		}
