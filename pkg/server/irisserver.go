@@ -15,6 +15,7 @@ type IrisServer struct {
 	//Router  *MuxRouter
 	//Options []Option
 	Iris *iris.Application
+	Opts []iris.Configurator
 }
 
 func NewIrisServer(host string, port int) *IrisServer {
@@ -29,13 +30,13 @@ func NewIrisServer(host string, port int) *IrisServer {
 		Iris: iris.New(),
 	}
 }
-func (s *IrisServer) Start(ctx context.Context, opts ...iris.Configurator) error {
+func (s *IrisServer) Start(ctx context.Context) error {
 	addr := fmt.Sprintf("%s:%d", s.Server.Host, s.Server.Port)
 	log.Infof("irisServer %s start", addr)
 	go func() {
 		err := s.Iris.Run(
 			iris.Addr(addr), // 启动服务，监控地址和端口
-			opts...,
+			s.Opts...,
 		)
 		if err != nil {
 			log.Panic("irisServer start fail err=", err)
