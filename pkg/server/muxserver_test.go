@@ -11,6 +11,8 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"os"
 	"os/signal"
@@ -34,14 +36,16 @@ func TestMux(t *testing.T) {
 	newRouter := NewRouter()
 	muxServer := NewMuxServer(config.Cfg.Host, 1231, newRouter)
 	server.AddServer(muxServer)
-	newRouter.Use(otelmux.Middleware("t"))
+	prop := propagation.TraceContext{}
+	newRouter.Use(otelmux.Middleware(config.Cfg.ServiceName, otelmux.WithPropagators(prop)))
 	newRouter.Use(middleware.Meter)
 	newRouter.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
 		log.Info("test")
 		writer.Write([]byte("ttt"))
 	}).Methods("GET")
 	newRouter.HandleFunc("/test/{tt}", func(writer http.ResponseWriter, request *http.Request) {
-		log.Info("tt")
+		s := trace.SpanContextFromContext(request.Context()).TraceID().String()
+		log.Info("tt ", s)
 		writer.Write([]byte("zz"))
 	}).Methods("GET")
 
