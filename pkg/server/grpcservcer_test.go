@@ -97,8 +97,22 @@ func TestOtelGrpc(t *testing.T) {
 }
 
 func TestHelloServer(t *testing.T) {
+	ctx, ca := context.WithCancel(context.Background())
+	defer ca()
+	log.InitLog()
+	newConfig := config.NewConfig(config.Json)
+	newConfig.Category = "../config/d"
+
+	newConfig.InitConfig()
+	otelGrpc, err := trac.NewOtelGrpc(ctx, otlptracegrpc.WithEndpoint("localhost:4317"), otlptracegrpc.WithInsecure())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer otelGrpc.ShutDown(ctx)
 	//stream
-	conn, err := grpc.Dial("127.0.0.1:2212", grpc.WithInsecure())
+	conn, err := grpc.Dial("127.0.0.1:2212", grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+	)
 	if err != nil {
 		panic(err)
 	}
