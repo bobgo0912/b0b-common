@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,12 +40,17 @@ func TestMux(t *testing.T) {
 	newRouter.Use(otelmux.Middleware(config.Cfg.ServiceName, otelmux.WithPropagators(prop)))
 	newRouter.Use(middleware.Meter)
 	newRouter.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
-		log.Info("test")
+		//log.Otel(request.Context()).Infof("", "test")
 		writer.Write([]byte("ttt"))
 	}).Methods("GET")
 	newRouter.HandleFunc("/test/{tt}", func(writer http.ResponseWriter, request *http.Request) {
-		s := trace.SpanContextFromContext(request.Context()).TraceID().String()
-		log.Info("tt ", s)
+		//s := trace.SpanContextFromContext(request.Context()).TraceID().String()
+		//log.Info("tt ", s)
+		field := zap.String("sd", "sds")
+		//log.Info("tt ", s, field)
+		log.Otel(request.Context()).Error("133311=", field)
+		log.Otel(request.Context()).Info("111=", field)
+		//log.Otel(request.Context()).Infof("%s", "sdsdsd=asdsa")
 		writer.Write([]byte("zz"))
 	}).Methods("GET")
 
