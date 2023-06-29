@@ -8,6 +8,7 @@ import (
 	"github.com/bobgo0912/b0b-common/pkg/meter"
 	"github.com/bobgo0912/b0b-common/pkg/server/middleware"
 	"github.com/bobgo0912/b0b-common/pkg/trac"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -37,6 +38,7 @@ func TestMux(t *testing.T) {
 	muxServer := NewMuxServer(config.Cfg.Host, 1231, newRouter)
 	server.AddServer(muxServer)
 	prop := propagation.TraceContext{}
+	newRouter.Handle("/metrics", promhttp.Handler())
 	newRouter.Use(otelmux.Middleware(config.Cfg.ServiceName, otelmux.WithPropagators(prop)))
 	newRouter.Use(middleware.Meter)
 	newRouter.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
@@ -48,7 +50,7 @@ func TestMux(t *testing.T) {
 		//log.Info("tt ", s)
 		field := zap.String("sd", "sds")
 		//log.Info("tt ", s, field)
-		log.Otel(request.Context()).Error("133311=", field)
+		log.Otel(request.Context()).Info("133311=", field)
 		log.Otel(request.Context()).Info("111=", field)
 		//log.Otel(request.Context()).Infof("%s", "sdsdsd=asdsa")
 		writer.Write([]byte("zz"))

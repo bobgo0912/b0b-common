@@ -7,6 +7,8 @@ import (
 	"github.com/bobgo0912/b0b-common/pkg/log"
 	"github.com/bobgo0912/b0b-common/pkg/server/common"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"net"
 )
 
@@ -31,6 +33,8 @@ func NewGrpcServer(host string, port int, options ...grpc.ServerOption) *GrpcSer
 
 func (s *GrpcServer) RegService(sd *grpc.ServiceDesc, ss interface{}) {
 	s.GrpcServer.RegisterService(sd, ss)
+	healthServer := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(s.GrpcServer, healthServer)
 }
 
 func (s *GrpcServer) Start(ctx context.Context) error {
@@ -50,6 +54,7 @@ func (s *GrpcServer) Start(ctx context.Context) error {
 	}()
 	select {
 	case <-ctx.Done():
+		s.GrpcServer.GracefulStop()
 		break
 	}
 	log.Info("rpcServer stop ", address)

@@ -11,10 +11,18 @@ import (
 	bp "github.com/bobgo0912/b0b-common/pkg/server/proto"
 	h "github.com/bobgo0912/b0b-common/pkg/server/proto"
 	"github.com/bobgo0912/b0b-common/pkg/trac"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"os"
@@ -29,6 +37,7 @@ type HelleServer struct {
 
 func (s *HelleServer) SayHello(ctx context.Context, request *bp.HelloRequest) (*bp.HelloReply,
 	error) {
+	log.Otel(ctx).Info("SayHellosss=", zap.String("name", request.Name))
 	return &bp.HelloReply{
 		Message: "hello " + request.Name,
 	}, nil
@@ -47,6 +56,7 @@ func TestOtelGrpc(t *testing.T) {
 	}
 
 	r := NewRouter()
+	r.Handle("/metrics", promhttp.Handler())
 	r.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
 		log.Info("test")
 		writer.Write([]byte("ttt"))
@@ -54,14 +64,22 @@ func TestOtelGrpc(t *testing.T) {
 	//r.Use(GrpcMid)
 	r.HandleProtoFunc("/proto", func(req proto.Message, w http.ResponseWriter) {
 		log.Info(req)
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("xxxxxxx"))
 	}, &bp.HelloRequest{}).Methods("POST")
 	httpServer := NewMuxServer(config.Cfg.Host, 2211, r)
 	grpcServer := NewGrpcServer(config.Cfg.Host, 2212,
-		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
-		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
+		grpc.ChainUnaryInterceptor(
+			grpc_recovery.UnaryServerInterceptor(),
+			grpc_prometheus.UnaryServerInterceptor,
+			grpc_validator.UnaryServerInterceptor(),
+			grpc_zap.UnaryServerInterceptor(zap.L()),
+			otelgrpc.UnaryServerInterceptor(),
+		),
+		//grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
 	)
+
 	grpcServer.RegService(&bp.Greeter_ServiceDesc, &HelleServer{})
 	mainServer.AddServer(httpServer)
 	mainServer.AddServer(grpcServer)
@@ -110,9 +128,15 @@ func TestHelloServer(t *testing.T) {
 	}
 	defer otelGrpc.ShutDown(ctx)
 	//stream
-	conn, err := grpc.Dial("127.0.0.1:2212", grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
-	)
+	//conn, err := grpc.Dial("127.0.0.1:2212", grpc.WithInsecure(),
+	//	grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+	//)
+	conn, err := grpc.Dial("127.0.0.1:2212", grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+			grpc_zap.UnaryClientInterceptor(zap.L()),
+			otelgrpc.UnaryClientInterceptor(),
+		)))
+
 	if err != nil {
 		panic(err)
 	}

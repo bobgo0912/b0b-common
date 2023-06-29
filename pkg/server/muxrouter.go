@@ -22,6 +22,9 @@ func NewRouter() *MuxRouter {
 	return &MuxRouter{R: mux.NewRouter()}
 }
 
+func (r *MuxRouter) Handle(path string, handler http.Handler) *mux.Route {
+	return r.R.Handle(path, handler)
+}
 func (r *MuxRouter) HandleFunc(path string, f func(http.ResponseWriter, *http.Request)) *mux.Route {
 	return r.R.HandleFunc(path, f)
 }
